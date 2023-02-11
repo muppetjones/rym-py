@@ -8,13 +8,16 @@ from functools import singledispatch
 import logging
 from traceback import TracebackException
 
-from typing import Any, Deque, Iterable, Mapping, Union
+from typing import Any, Deque, Iterable, Mapping, Optional, Union
+
+from ._delim import get_delimiter
 
 LOGGER = logging.getLogger(__name__)
 
 
-def get(value: Any, key: str) -> Any:
-    parts = key.split(".")
+def get(value: Any, key: str, delim: Optional[str] = None) -> Any:
+    delim = delim or get_delimiter()
+    parts = key.split(delim)
     try:
         return _get(value, deque(parts))
     except (AttributeError, IndexError, KeyError) as err:

@@ -102,5 +102,22 @@ class TestGet(ThisTestCase):
                 found = MOD.get(example, key)
                 self.assertEqual(expected, found)
 
+    def test_honors_given_delim(self):
+        example = self.get_example()
+        key = "mapping/c/foo"
+        expected = example["mapping"]["c"]["foo"]
+        found = MOD.get(example, key, delim="/")
+        self.assertEqual(expected, found)
+
+    def test_honors_set_delim(self):
+        MOD.set_delimiter("@")
+        self.addCleanup(MOD.reset_delimiter)
+
+        example = self.get_example()
+        key = "mapping@c@foo"
+        expected = example["mapping"]["c"]["foo"]
+        found = MOD.get(example, key)
+        self.assertEqual(expected, found)
+
 
 # __END__
