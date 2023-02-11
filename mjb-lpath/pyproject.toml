@@ -1,0 +1,31 @@
+[tool.pdm]
+[tool.pdm.dev-dependencies]
+dev = [
+    "coverage>=7.1.0",
+    "pytest>=7.2.1",
+    "pytest-cov>=4.0.0",
+]
+
+[project]
+name = "mjb-lpath"
+version = "0.1.0"
+description = "A python library for accessing mappings and objects."
+authors = [
+    {name = "Stephen Bush", email = "muppetjones@gmail.com"},
+]
+dependencies = []
+requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "GPLv3"}
+
+[build-system]
+requires = ["pdm-pep517>=1.0"]
+build-backend = "pdm.pep517.api"
+
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -vvv --cov=mjb"
+testpaths = [
+    "tests",
+]
