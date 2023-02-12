@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""".
+"""Set values on indexed objects.
 
 """
 

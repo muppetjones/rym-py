@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-""".
+"""Accessor for any indexed object, e.g., iterables and mappings.
+
 
 """
 
@@ -46,7 +47,9 @@ def get(
 
 @singledispatch
 def _get(key: Any, value: Any, delim: str) -> Any:
-    raise ValueError(f"invalid key: {key}, ({type(key)}); expected str or list of str")
+    raise ValueError(
+        f"invalid key: {key}, ({type(key)}); expected str or list of str"
+    )
 
 
 @_get.register(str)

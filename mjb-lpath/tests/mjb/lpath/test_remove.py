@@ -40,11 +40,14 @@ class TestPop(ThisTestCase):
 
     def test_raises_if_target_is_immutable(self):
         example = self.get_example()
-        with self.assertRaisesRegex(TypeError, "not support item removal"):
-            MOD.pop(example, "mapping.e.0")
-
-        with self.assertRaisesRegex(TypeError, "not support item removal"):
-            MOD.pop(example, "mapping.c.foo.0")
+        tests = [
+            "mapping.e.0",
+            "mapping.c.foo.0",
+        ]
+        for key in tests:
+            with self.subTest(key=key):
+                with self.assertRaisesRegex(TypeError, "not supported"):
+                    MOD.pop(example, key)
 
     def test_raises_if_key_parent_does_not_exist_or_invalid(self):
         example = self.get_example()
@@ -67,7 +70,6 @@ class TestPop(ThisTestCase):
         example = self.get_example()
         tests = [
             # (key, lookup lambda)
-            ("other", lambda x: x["other"]),
             ("list.0", lambda x: x["list"][0]),
             ("list.1.1", lambda x: x["list"][1][1]),
             ("list.2.foo", lambda x: x["list"][2]["foo"]),
@@ -104,7 +106,7 @@ class TestPopIntegratedExamples(ThisTestCase):
     def test_removes_from_mapping(self):
         example = {"a": [1, 2, 3], "b": {"x": 4, "y": 5}, "c": {"z": 42}}
         removed = [
-            MOD.pop(example, "a.3"),
+            MOD.pop(example, "a.2"),
             MOD.pop(example, "b.y"),
             MOD.pop(example, "c"),
         ]
@@ -114,21 +116,25 @@ class TestPopIntegratedExamples(ThisTestCase):
         with self.assertRaises(KeyError):
             MOD.pop(example, "b.y")
 
-    def test_removes_from_mapping(self):
+    def test_removes_from_namespace(self):
         example = SimpleNamespace(
             a=[1, 2, 3],
             b=SimpleNamespace(x=4, y=5),
             c={"z": 42},
         )
         removed = [
-            MOD.pop(example, "a.3"),
+            MOD.pop(example, "a.2"),
             MOD.pop(example, "b.y"),
             MOD.pop(example, "c"),
         ]
-        self.assertEqual({"a": [1, 2], "b": {"x": 4}}, example)
+        expected = SimpleNamespace(
+            a=[1, 2],
+            b=SimpleNamespace(x=4),
+        )
+        self.assertEqual(expected, example)
         self.assertEqual([3, 5, {"z": 42}], removed)
 
-        with self.assertRaises(KeyError):
+        with self.assertRaises(AttributeError):
             MOD.pop(example, "b.y")
 
 
