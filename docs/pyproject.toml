@@ -1,0 +1,15 @@
+[tool.pdm]
+
+[project]
+name = ""
+version = ""
+description = ""
+authors = [
+    {name = "Stephen Bush", email = "muppetjones@gmail.com"},
+]
+dependencies = [
+    "sphinx>=6.1.3",
+    "sphinx-rtd-theme>=1.2.0",
+]
+requires-python = ">=3.10"
+license = {text = "MIT"}

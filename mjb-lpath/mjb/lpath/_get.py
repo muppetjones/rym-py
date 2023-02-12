@@ -3,11 +3,10 @@
 
 """
 
+import logging
 from collections import abc, deque
 from functools import singledispatch
-import logging
 from traceback import TracebackException
-
 from typing import Any, Deque, Iterable, Mapping, Optional, Union
 
 from ._delim import get_delimiter
@@ -15,7 +14,20 @@ from ._delim import get_delimiter
 LOGGER = logging.getLogger(__name__)
 
 
-def get(value: Any, key: str, delim: Optional[str] = None) -> Any:
+def get(value: Any, key: Union[str, Iterable[str]], delim: Optional[str] = None) -> Any:
+    """Return the value of the property found at the given key.
+
+    Arguments:
+        value: An object, iterable, or mapping
+        key: A string indicating the path to the value.
+            An itererable of strings may be provided. The first match will be returned.
+        delim: Specify the delimiter. Default is '.'.
+    Returns:
+        The property found.
+    Raises:
+        AttributeError, IndexError, or KeyError if the requested key could not be found.
+        ValueError if an invalid key given.
+    """
     delim = delim or get_delimiter()
     return _get(key, value, delim)
 
