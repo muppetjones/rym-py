@@ -9,7 +9,7 @@ dev = [
 
 [project]
 name = "mjb-lpath"
-version = "0.1.0"
+version = "0.2.0"
 description = "A python library for accessing mappings and objects."
 authors = [
     {name = "Stephen Bush", email = "muppetjones@gmail.com"},
