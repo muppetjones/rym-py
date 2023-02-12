@@ -112,10 +112,46 @@ class TestGet(ThisTestCase):
                 found = MOD.get(example, key)
                 self.assertEqual(expected, found)
 
+
+class TestGetWithDefault(ThisTestCase):
+    """Test feature."""
+
+    def get_example(self):
+        return {
+            "foo": {"bar": "baz"},
+            "meh": ["ugh"],
+        }
+
+    def test_returns_default_if_key_not_found(self):
+        example = self.get_example()
+        default = None
+        tests = itertools.chain(
+            [
+                # (expected, given)
+                (default, ["foo.a", "foo.x"]),
+                (default, "x"),
+            ]
+        )
+
+        for expected, key in tests:
+            with self.subTest(key=key):
+                found = MOD.get(example, key, default=default)
+                self.assertEqual(expected, found)
+
+
+class TestGetWithDelim(ThisTestCase):
+    """Test feature."""
+
+    def get_example(self):
+        return {
+            "foo": {"bar": "baz"},
+            "meh": ["ugh"],
+        }
+
     def test_honors_given_delim(self):
         example = self.get_example()
-        key = "mapping/c/foo"
-        expected = example["mapping"]["c"]["foo"]
+        key = "foo/bar"
+        expected = example["foo"]["bar"]
         found = MOD.get(example, key, delim="/")
         self.assertEqual(expected, found)
 
@@ -124,13 +160,13 @@ class TestGet(ThisTestCase):
         self.addCleanup(MOD.reset_delimiter)
 
         example = self.get_example()
-        key = "mapping@c@foo"
-        expected = example["mapping"]["c"]["foo"]
+        key = "foo@bar"
+        expected = example["foo"]["bar"]
         found = MOD.get(example, key)
         self.assertEqual(expected, found)
 
 
-class TestMultiKey(ThisTestCase):
+class TestGetWithMultiKey(ThisTestCase):
     """Test feature."""
 
     def get_example(self):

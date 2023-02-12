@@ -12,9 +12,16 @@ from typing import Any, Deque, Iterable, Mapping, Optional, Union
 from ._delim import get_delimiter
 
 LOGGER = logging.getLogger(__name__)
+__DEFAULT = "any random string that is unlikely to be provided"
 
 
-def get(value: Any, key: Union[str, Iterable[str]], delim: Optional[str] = None) -> Any:
+def get(
+    value: Any,
+    key: Union[str, Iterable[str]],
+    *,
+    default: Optional[Any] = __DEFAULT,
+    delim: Optional[str] = None,
+) -> Any:
     """Return the value of the property found at the given key.
 
     Arguments:
@@ -29,7 +36,12 @@ def get(value: Any, key: Union[str, Iterable[str]], delim: Optional[str] = None)
         ValueError if an invalid key given.
     """
     delim = delim or get_delimiter()
-    return _get(key, value, delim)
+    try:
+        return _get(key, value, delim)
+    except (AttributeError, KeyError, IndexError):
+        if __DEFAULT != default:
+            return default
+        raise
 
 
 @singledispatch
