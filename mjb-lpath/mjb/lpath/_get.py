@@ -17,9 +17,19 @@ LOGGER = logging.getLogger(__name__)
 
 def get(value: Any, key: str, delim: Optional[str] = None) -> Any:
     delim = delim or get_delimiter()
+    return _get(key, value, delim)
+
+
+@singledispatch
+def _get(key: Any, value: Any, delim: str) -> Any:
+    raise ValueError(f"invalid key: {key}, ({type(key)}); expected str or list of str")
+
+
+@_get.register(str)
+def _(key: str, value: str, delim: str) -> Any:
     parts = key.split(delim)
     try:
-        return _get(value, deque(parts))
+        return _get_from(value, deque(parts))
     except (AttributeError, IndexError, KeyError) as err:
         tb = TracebackException.from_exception(err)
         missing = str(err).strip("'\"")
@@ -29,8 +39,19 @@ def get(value: Any, key: str, delim: Optional[str] = None) -> Any:
         raise ValueError(f"{err} (given={key})") from err
 
 
+@_get.register(abc.Iterable)
+def _(key: Iterable[str], value: str, delim: str) -> Any:
+    for k in key:
+        try:
+            parts = k.split(delim)
+            return _get_from(value, deque(parts))
+        except (AttributeError, IndexError, KeyError) as err:
+            continue
+    raise KeyError(f"no matches: {key}")
+
+
 @singledispatch
-def _get(value: Any, parts: Deque[str]) -> Any:
+def _get_from(value: Any, parts: Deque[str]) -> Any:
     if not parts:
         return value
     key = parts.popleft()
@@ -38,10 +59,10 @@ def _get(value: Any, parts: Deque[str]) -> Any:
         curr = getattr(value, key)
     except AttributeError as err:
         raise AttributeError(key) from err
-    return _get(curr, parts)
+    return _get_from(curr, parts)
 
 
-@_get.register(abc.Iterable)
+@_get_from.register(abc.Iterable)
 def _(value: Iterable, parts: Deque[str]) -> Any:
     if not parts:
         return value
@@ -50,15 +71,15 @@ def _(value: Iterable, parts: Deque[str]) -> Any:
         curr = value[key]
     except IndexError:
         raise IndexError(key) from None
-    return _get(curr, parts)
+    return _get_from(curr, parts)
 
 
-@_get.register(abc.Mapping)
+@_get_from.register(abc.Mapping)
 def _(value: Mapping, parts: Deque[str]) -> Any:
     if not parts:
         return value
     key = parts.popleft()
-    return _get(value[key], parts)
+    return _get_from(value[key], parts)
 
 
 # __END__

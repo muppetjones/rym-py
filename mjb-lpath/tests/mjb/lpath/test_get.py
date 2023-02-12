@@ -33,6 +33,16 @@ class TestGet(ThisTestCase):
             "namespace": SimpleNamespace(**data),
         }
 
+    def test_raises_if_invalid_key(self):
+        tests = [
+            (ValueError, 42),
+            # (ValueError, {"foo": "bar"}),
+        ]
+        for exc_type, key in tests:
+            with self.subTest(key=key):
+                with self.assertRaisesRegex(exc_type, "invalid key"):
+                    MOD.get({}, key)
+
     def test_raises_if_invalid_path(self):
         # i.e., given key is invalid for the object type
         example = self.get_example()
@@ -118,6 +128,37 @@ class TestGet(ThisTestCase):
         expected = example["mapping"]["c"]["foo"]
         found = MOD.get(example, key)
         self.assertEqual(expected, found)
+
+
+class TestMultiKey(ThisTestCase):
+    """Test feature."""
+
+    def get_example(self):
+        return {
+            "foo": {"bar": "baz"},
+            "meh": ["ugh"],
+        }
+
+    def test_raises_if_no_match(self):
+        example = self.get_example()
+        with self.assertRaisesRegex(KeyError, "no matches"):
+            MOD.get(example, ["foo.ick", "b"])
+
+    def test_returns_first_match(self):
+        example = self.get_example()
+        tests = itertools.chain(
+            [
+                # (expected, given)
+                (example["foo"]["bar"], ["foo.bar", "foo.x"]),
+                (example["foo"]["bar"], ["foo.x", "foo.bar"]),
+                (example["foo"]["bar"], ["a", "foo.bar", "foo.x"]),
+            ]
+        )
+
+        for expected, key in tests:
+            with self.subTest(key=key):
+                found = MOD.get(example, key)
+                self.assertEqual(expected, found)
 
 
 # __END__
