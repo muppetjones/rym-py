@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test lpath.set."""
+"""Test lpath.delete."""
 
 import copy
 import logging
@@ -16,7 +16,7 @@ class ThisTestCase(TestCase):
     """Base test case for the module."""
 
 
-class TestSet(ThisTestCase):
+class TestPop(ThisTestCase):
     """Test function."""
 
     def get_example(self) -> Mapping:
@@ -36,15 +36,18 @@ class TestSet(ThisTestCase):
     def test_raises_if_key_is_not_a_str(self):
         example = self.get_example()
         with self.assertRaisesRegex(TypeError, "must be a string"):
-            MOD.set(example, ["list.0", "mapping.a"], "str required")
+            MOD.pop(example, ["list.0", "mapping.a"])
 
     def test_raises_if_target_is_immutable(self):
         example = self.get_example()
-        with self.assertRaisesRegex(TypeError, "not support item assignment"):
-            MOD.set(example, "mapping.e.0", "err")
-
-        with self.assertRaisesRegex(TypeError, "not support item assignment"):
-            MOD.set(example, "mapping.c.foo.0", "err")
+        tests = [
+            "mapping.e.0",
+            "mapping.c.foo.0",
+        ]
+        for key in tests:
+            with self.subTest(key=key):
+                with self.assertRaisesRegex(TypeError, "not supported"):
+                    MOD.pop(example, key)
 
     def test_raises_if_key_parent_does_not_exist_or_invalid(self):
         example = self.get_example()
@@ -61,14 +64,12 @@ class TestSet(ThisTestCase):
         for exc_type, value, path in tests:
             with self.subTest(value=value, path=path):
                 with self.assertRaises(exc_type):
-                    MOD.set(example, path, value)
+                    MOD.pop(example, path)
 
-    def test_sets_value_for_given_path(self):
+    def test_returns_value_for_given_path(self):
         example = self.get_example()
-        value = 42
         tests = [
             # (key, lookup lambda)
-            ("other", lambda x: x["other"]),
             ("list.0", lambda x: x["list"][0]),
             ("list.1.1", lambda x: x["list"][1][1]),
             ("list.2.foo", lambda x: x["list"][2]["foo"]),
@@ -78,48 +79,82 @@ class TestSet(ThisTestCase):
         ]
         for path, retrieve in tests:
             instance = copy.deepcopy(example)
-            with self.subTest(value=value, path=path):
-                MOD.set(instance, path, value)
-                found = retrieve(instance)
-                expected = value
+            with self.subTest(path=path):
+                expected = retrieve(instance)
+                found = MOD.pop(instance, path)
                 self.assertEqual(expected, found)
 
-    def test_adds_item_if_parent_is_mapping(self):
-        example = self.get_example()
-        value = 42
-        tests = [
-            # (path, lookup lambda)
-            ("list.2.b", lambda x: x["list"][2]["b"]),
-            ("mapping.f", lambda x: x["mapping"]["f"]),
-            ("mapping.c.u", lambda x: x["mapping"]["c"]["u"]),
-            ("namespace.c.u", lambda x: x["namespace"].c["u"]),
+
+class TestPopIntegratedExamples(ThisTestCase):
+    """Test behavior."""
+
+    def test_removes_from_iterable(self):
+        example = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+        removed = [
+            MOD.pop(example, "0.0"),
+            MOD.pop(example, "2.2"),
+            MOD.pop(example, "1"),
+            MOD.pop(example, "1.0"),
+            MOD.pop(example, "1.0"),
         ]
-        for path, retrieve in tests:
-            instance = copy.deepcopy(example)
-            with self.subTest(value=value, path=path):
-                MOD.set(instance, path, value)
-                found = retrieve(instance)
-                expected = value
-                self.assertEqual(expected, found)
+        self.assertEqual([[2, 3], []], example)
+        self.assertEqual([1, 9, [4, 5, 6], 7, 8], removed)
+
+        with self.assertRaises(IndexError):
+            MOD.pop(example, "1.0")
+
+    def test_removes_from_mapping(self):
+        example = {"a": [1, 2, 3], "b": {"x": 4, "y": 5}, "c": {"z": 42}}
+        removed = [
+            MOD.pop(example, "a.2"),
+            MOD.pop(example, "b.y"),
+            MOD.pop(example, "c"),
+        ]
+        self.assertEqual({"a": [1, 2], "b": {"x": 4}}, example)
+        self.assertEqual([3, 5, {"z": 42}], removed)
+
+        with self.assertRaises(KeyError):
+            MOD.pop(example, "b.y")
+
+    def test_removes_from_namespace(self):
+        example = SimpleNamespace(
+            a=[1, 2, 3],
+            b=SimpleNamespace(x=4, y=5),
+            c={"z": 42},
+        )
+        removed = [
+            MOD.pop(example, "a.2"),
+            MOD.pop(example, "b.y"),
+            MOD.pop(example, "c"),
+        ]
+        expected = SimpleNamespace(
+            a=[1, 2],
+            b=SimpleNamespace(x=4),
+        )
+        self.assertEqual(expected, example)
+        self.assertEqual([3, 5, {"z": 42}], removed)
+
+        with self.assertRaises(AttributeError):
+            MOD.pop(example, "b.y")
 
 
-class TestSetWithDelim(ThisTestCase):
+class TestPopWithDelim(ThisTestCase):
     """Test feature."""
 
     def get_example(self):
         return {
             "foo": {"bar": "baz"},
-            "meh": ["ugh"],
+            "meh": ["ugh", "ack"],
+            "ick": SimpleNamespace(tsk=0, heh=1),
         }
 
     def test_honors_given_delim(self):
         example = self.get_example()
         key = "foo/bar"
-        value = (0, 1, 42)
-        MOD.set(example, key, value, delim="/")
+        MOD.pop(example, key, delim="/")
 
-        found = example["foo"]["bar"]
-        expected = value
+        found = example["foo"]
+        expected = {}
         self.assertEqual(expected, found)
 
     def test_honors_set_delim(self):
@@ -127,12 +162,11 @@ class TestSetWithDelim(ThisTestCase):
         self.addCleanup(MOD.reset_delimiter)
 
         example = self.get_example()
-        key = "foo@bar"
-        value = {"a": "mapping"}
-        MOD.set(example, key, value)
+        key = "ick@tsk"
+        MOD.pop(example, key)
 
-        found = example["foo"]["bar"]
-        expected = value
+        found = example["ick"]
+        expected = SimpleNamespace(heh=1)
         self.assertEqual(expected, found)
 
 

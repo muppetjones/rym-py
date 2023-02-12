@@ -13,16 +13,17 @@ on:
       - "*.md"
 
 jobs:
-  mjb-lpath:
+  test:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         python-version: [3.8, 3.9, '3.10']
         os: [ubuntu-latest]
+        pkg: [mjb-lpath]
         # os: [ubuntu-latest, macOS-latest, windows-latest]
     defaults:
       run:
-        working-directory: ./mjb-lpath
+        working-directory: ./${{ matrix.pkg }}
 
     steps:
       - uses: actions/checkout@v3
@@ -31,7 +32,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: true
-          cache-dependency-path: 'mjb-lpath/pdm.lock'
+          cache-dependency-path: '${{ matrix.pkg }}/pdm.lock'
       - name: Install dependencies
         run: |
           pdm sync --dev
