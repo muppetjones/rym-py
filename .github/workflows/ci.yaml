@@ -40,7 +40,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.arch }}
-          version: 1.4.0
           # enable-pep582: true  # Enable PEP 582 package loading globally
           cache: true
           cache-dependency-path: 'mjb-lpath/pdm.lock'
