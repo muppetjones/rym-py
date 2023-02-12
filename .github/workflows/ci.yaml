@@ -14,40 +14,27 @@ on:
 
 jobs:
   mjb-lpath:
-
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
-        os: [ubuntu-latest]
-        arch: [x64]
+        python-version: [3.8, 3.9, '3.10']
+        os: [ubuntu-latest, macOS-latest, windows-latest]
     defaults:
       run:
         working-directory: ./mjb-lpath
 
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: pdm-project/setup-pdm@v3
+      - name: Set up PDM
+        uses: pdm-project/setup-pdm@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Setup PDM
-        uses: pdm-project/setup-pdm@v3
-        with:
-          python-version: ${{ matrix.python-version }}
-          architecture: ${{ matrix.arch }}
-          # enable-pep582: true  # Enable PEP 582 package loading globally
           cache: true
           cache-dependency-path: 'mjb-lpath/pdm.lock'
       - name: Install dependencies
         run: |
-          python -m pip install "tox>4.0.0b0" .
-      - name: Test with tox
+          pdm sync --dev
+      - name: Run Tests
         run: |
-          tox --version
-          pyversion="${{ matrix.python-version }}"
-          tox -e py${pyversion/./}
+          pdm run -v pytest
+

@@ -15,7 +15,7 @@ authors = [
     {name = "Stephen Bush", email = "muppetjones@gmail.com"},
 ]
 dependencies = []
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 readme = "README.md"
 license = {text = "MIT"}
 
