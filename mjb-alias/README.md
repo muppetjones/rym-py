@@ -1,0 +1,3 @@
+# mjb-alias
+
+Simple aliasing.

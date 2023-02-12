@@ -1,0 +1,17 @@
+[tool.pdm]
+
+[project]
+name = "mjb-alias"
+version = "0.1.0"
+description = "Simple aliasing."
+authors = [
+    {name = "Stephen Bush", email = "2041619+muppetjones@users.noreply.github.com"},
+]
+dependencies = []
+requires-python = ">=3.7"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-pep517>=1.0"]
+build-backend = "pdm.pep517.api"

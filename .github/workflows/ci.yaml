@@ -13,13 +13,26 @@ on:
       - "*.md"
 
 jobs:
+  changed-dirs:
+    outputs:
+      dirnames: ${{ steps.changed-files-dirnames.outputs.all_changed_and_modified_files }}
+    steps:
+      - name: Run changed-files with dir_names
+        id: changed-files-dir-names
+        uses: tj-actions/changed-files@v35
+        with:
+          dir_names: "true"
+          json: "true"
+          files: |
+            mjb-*/**
   test:
     runs-on: ${{ matrix.os }}
+    needs: changed-files
     strategy:
       matrix:
         python-version: [3.8, 3.9, '3.10']
         os: [ubuntu-latest]
-        pkg: [mjb-lpath]
+        pkg: ${{ needs.changed-dirs.outputs.dirnames }}
         # os: [ubuntu-latest, macOS-latest, windows-latest]
     defaults:
       run:
