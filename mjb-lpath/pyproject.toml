@@ -15,9 +15,9 @@ authors = [
     {name = "Stephen Bush", email = "muppetjones@gmail.com"},
 ]
 dependencies = []
-requires-python = ">=3.10"
+requires-python = ">=3.7"
 readme = "README.md"
-license = {text = "GPLv3"}
+license = {text = "MIT"}
 
 [project.optional-dependencies]
 test = [
