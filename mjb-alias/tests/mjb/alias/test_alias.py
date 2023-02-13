@@ -2,7 +2,7 @@
 """Test."""
 
 import logging
-from unittest import TestCase, mock
+from unittest import TestCase
 
 import mjb.alias as MOD
 
@@ -18,6 +18,9 @@ class TestAlias(ThisTestCase):
 
     def test_something(self):
         self.fail()
+
+    # def test_something_else(self):
+    #     self.fail()
 
 
 # __END__

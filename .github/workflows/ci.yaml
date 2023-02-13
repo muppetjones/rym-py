@@ -2,54 +2,39 @@ name:  CI
 
 on:
   pull_request:
-    paths-ignore:
-      - "docs/**"
-      - "*.md"
-  push:
     branches:
       - main
-    paths-ignore:
-      - "docs/**"
-      - "*.md"
 
 jobs:
-  changed-dirs:
+  changes:
+    runs-on: ubuntu-latest
+    # Required permissions
+    permissions:
+      pull-requests: read
+    # Set job outputs to values from filter step
     outputs:
-      dirnames: ${{ steps.changed-files-dirnames.outputs.all_changed_and_modified_files }}
+      lpath: ${{ steps.filter.outputs.lpath }}
+      alias: ${{ steps.filter.outputs.alias }}
     steps:
-      - name: Run changed-files with dir_names
-        id: changed-files-dir-names
-        uses: tj-actions/changed-files@v35
-        with:
-          dir_names: "true"
-          json: "true"
-          files: |
-            mjb-*/**
-  test:
-    runs-on: ${{ matrix.os }}
-    needs: changed-files
-    strategy:
-      matrix:
-        python-version: [3.8, 3.9, '3.10']
-        os: [ubuntu-latest]
-        pkg: ${{ needs.changed-dirs.outputs.dirnames }}
-        # os: [ubuntu-latest, macOS-latest, windows-latest]
-    defaults:
-      run:
-        working-directory: ./${{ matrix.pkg }}
-
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up PDM
-        uses: pdm-project/setup-pdm@v3
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: true
-          cache-dependency-path: '${{ matrix.pkg }}/pdm.lock'
-      - name: Install dependencies
-        run: |
-          pdm sync --dev
-      - name: Run Tests
-        run: |
-          pdm run -v pytest
-
+    # For pull requests it's not necessary to checkout the code
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        # filters: .github/file-filters.yaml
+        filters: |
+          lpath:
+            - 'mjb-lpath/**'
+          alias:
+            - 'mjb-alias/**'
+  mjb-alias:
+    needs: changes
+    if: ${{ needs.changes.outputs.alias == 'true' }}
+    uses: ./.github/workflows/test-pdm.yaml
+    with:
+      target: mjb-alias
+  mjb-lpath:
+    needs: changes
+    if: ${{ needs.changes.outputs.lpath == 'true' }}
+    uses: ./.github/workflows/test-pdm.yaml
+    with:
+      target: mjb-lpath

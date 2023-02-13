@@ -1,0 +1,7 @@
+# for use with dorny/paths-filter@v2
+# https://github.com/dorny/paths-filter#examples
+lpath:
+  - 'mjb-lpath/**'
+
+alias:
+  - 'mjb-alias/**'
