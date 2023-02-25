@@ -25,8 +25,28 @@ class ThisTestCase(TestCase):
         return Path(tmpdir.name)
 
 
+class TestAddAliases(ThisTestCase):
+    """Test method."""
+
+    def test_appends_resolved_aliases(self):
+        subject = MOD.AliasResolver.build({"foo": ["bar"]})
+        subject.add({"hello": ["hola"]})
+        expected = [
+            Alias("foo", ["bar"]),
+            Alias("hello", ["hola"]),
+        ]
+        found = subject.aliases
+        self.assertEqual(expected, found)
+
+
 class TestBuild(ThisTestCase):
     """Test initialization classmethod."""
+
+    def test_stores_resolved_aliases(self):
+        subject = MOD.AliasResolver.build({"foo": ["bar"]})
+        expected = [Alias("foo", ["bar"])]
+        found = subject.aliases
+        self.assertEqual(expected, found)
 
 
 class TestResolveAlias(ThisTestCase):
@@ -53,6 +73,13 @@ class TestResolveAlias(ThisTestCase):
             Alias("b", ["bee"]),
             Alias("c", ["see"]),
         ]
+        subject = MOD.AliasResolver.build(given)
+        found = subject.aliases
+        self.assertEqual(expected, found)
+
+    def test_supports_None(self):
+        given = None
+        expected = []
         subject = MOD.AliasResolver.build(given)
         found = subject.aliases
         self.assertEqual(expected, found)

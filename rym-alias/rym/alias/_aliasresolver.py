@@ -50,6 +50,7 @@ class AliasResolver:
         cls,
         *args,
         transforms: Optional[Iterable[Callable[[str], str]]] = _DEFAULT,
+        _resolver: Callable = None,
         **kwargs,
     ) -> "AliasResolver":
         """Build aliases to resolve.
@@ -59,12 +60,30 @@ class AliasResolver:
             transforms: Optional transforms to apply to all aliases.
                 If given, will replace existing transforms on each alias.
                 Use 'None' to disable all transformations
+            _resolver: Inject an alias factory.
             **kwargs: Supported formats as keyword arguments
         See also:
             alias_factory
         """
-        aliases = resolve_aliases(*args, transforms=transforms, **kwargs)
-        return cls(aliases=aliases)
+        _resolver = _resolver or resolve_aliases
+        aliases = _resolver(*args, transforms=transforms, **kwargs)
+        instance = cls(aliases=[])
+        instance.add(aliases)
+        return instance
+
+    def add(
+        self,
+        *args,
+        transforms: Optional[Iterable[Callable[[str], str]]] = _DEFAULT,
+        _resolver: Callable = None,
+        **kwargs,
+    ) -> None:
+        """Add aliases to self."""
+        _resolver = _resolver or resolve_aliases
+        aliases = _resolver(*args, transforms=transforms, **kwargs)
+
+        self.aliases.extend(aliases)
+        return
 
 
 def resolve_aliases(
@@ -78,6 +97,7 @@ def resolve_aliases(
             e.g., {'identity': 'foo', 'aliases': 'bar', 'transform': 'upper'}
         - Alias mapping (does not support transform definition)
             e.g., {'foo': ['bar']}
+        - None
         - Iterable of supported format
         - Encoding of supported format
             - May be string (json only)
@@ -107,7 +127,9 @@ def resolve_aliases(
 
 @singledispatch
 def _yield_aliases(value: Any) -> Generator[Alias, None, None]:
-    raise TypeError(f"invalid alias: {value}")
+    if value is not None:
+        raise TypeError(f"invalid alias: {value}")
+    yield from []
 
 
 @_yield_aliases.register(str)
