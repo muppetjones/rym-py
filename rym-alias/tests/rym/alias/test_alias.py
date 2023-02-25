@@ -4,7 +4,7 @@
 import logging
 from unittest import TestCase
 
-import mjb.alias as MOD
+import rym.alias as MOD
 
 LOGGER = logging.getLogger(__name__)
 

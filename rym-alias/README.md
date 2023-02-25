@@ -1,3 +1,3 @@
-# mjb-alias
+# rym-alias
 
 Simple aliasing.

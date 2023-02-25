@@ -1,7 +1,7 @@
 [tool.pdm]
 
 [project]
-name = "mjb-alias"
+name = "rym-alias"
 version = "0.1.0"
 description = "Simple aliasing."
 authors = [

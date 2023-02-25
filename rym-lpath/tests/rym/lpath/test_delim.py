@@ -4,7 +4,7 @@
 import logging
 from unittest import TestCase, mock
 
-import mjb.lpath._delim as MOD
+import rym.lpath._delim as MOD
 
 LOGGER = logging.getLogger(__name__)
 

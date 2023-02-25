@@ -23,18 +23,18 @@ jobs:
         # filters: .github/file-filters.yaml
         filters: |
           lpath:
-            - 'mjb-lpath/**'
+            - 'rym-lpath/**'
           alias:
-            - 'mjb-alias/**'
-  mjb-alias:
+            - 'rym-alias/**'
+  rym-alias:
     needs: changes
     if: ${{ needs.changes.outputs.alias == 'true' }}
     uses: ./.github/workflows/test-pdm.yaml
     with:
-      target: mjb-alias
-  mjb-lpath:
+      target: rym-alias
+  rym-lpath:
     needs: changes
     if: ${{ needs.changes.outputs.lpath == 'true' }}
     uses: ./.github/workflows/test-pdm.yaml
     with:
-      target: mjb-lpath
+      target: rym-lpath

@@ -1,5 +1,5 @@
 
-Welcome to mjb-py's documentation!
+Welcome to rym-py's documentation!
 ==================================
 
 

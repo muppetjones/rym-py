@@ -1,5 +1,5 @@
 [project]
-name = "mjb-lpath"
+name = "rym-lpath"
 version = "0.3.0"
 description = "A python library for accessing mappings and objects."
 authors = [
@@ -43,7 +43,7 @@ build-backend = "pdm.pep517.api"
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-ra -vvv --cov=mjb"
+addopts = "-ra -vvv --cov=rym"
 testpaths = [
     "tests",
 ]

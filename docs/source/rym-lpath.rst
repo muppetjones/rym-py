@@ -1,4 +1,4 @@
-`mjb-lpath`
+`rym-lpath`
 ==================================
 
 The `lpath` module serves two primary purposes:
@@ -17,7 +17,7 @@ as you can add, remove, and update once you've pulled the appropriate item.
 API
 ==================================
 
-.. automodule:: mjb.lpath
+.. automodule:: rym.lpath
     :members:
     :imported-members:
 

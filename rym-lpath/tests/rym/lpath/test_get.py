@@ -7,7 +7,7 @@ from types import SimpleNamespace
 from typing import Mapping
 from unittest import TestCase, mock
 
-import mjb.lpath as MOD
+import rym.lpath as MOD
 
 LOGGER = logging.getLogger(__name__)
 
