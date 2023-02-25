@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-""".
+"""Alias dataclass.
 
 """
 
 import dataclasses as dcs
 import logging
-from collections import defaultdict
-from typing import Callable, Iterable, Mapping
+from collections import abc, defaultdict
+from functools import singledispatch
+from typing import Any, Callable, Generator, Iterable, Mapping
 
 from . import variation
 
@@ -58,7 +59,7 @@ class Alias:
         # allow users to explicitly provide 'None"
         self.aliases = self.aliases or []
         self.logger = self.logger or LOGGER
-        self.transforms = self.transforms or []
+        self.transforms = resolve_variations(self.transforms)
 
         # setup alias internal data
         opts = self.names
@@ -81,18 +82,19 @@ class Alias:
         self._lookup.update(lookup)
         self.aliases.append(value)
 
-    def add_transform(self, func: Callable[[str], str]) -> None:
-        """Add given transform and update alias lookup."""
-        if func in self.transforms:
-            self.logger.warning("existing transform: %s", func)
-            return  # do not add more than once
-        lookup = {func(k): 1 for k in self.names}
-        self._lookup.update(lookup)
-        self.transforms.append(func)
-
     def all_aliases(self) -> Iterable[str]:
         """Return all known aliases and transformations."""
         return sorted(self._lookup.keys())
+
+    def add_transform(self, value: Callable[[str], str]) -> None:
+        """Add given transform and update alias lookup."""
+        for func in resolve_variations(value):
+            if func in self.transforms:
+                self.logger.warning("existing transform: %s", func)
+                return  # do not add more than once
+            lookup = {func(k): 1 for k in self.names}
+            self._lookup.update(lookup)
+            self.transforms.append(func)
 
     def identify(self, value: str) -> str:
         """Return identity for the given alias value.
@@ -109,6 +111,68 @@ class Alias:
         if not match:
             raise AliasError(value)
         return self.identity
+
+    def set_transforms(self, value: Iterable[Callable[[str], str]]) -> None:
+        """Replace current transforms and update lookup.
+
+        Arguments:
+            value: Iterable of callables. None to clear  current.
+        Returns:
+            None
+        """
+        value = resolve_variations(value)
+        opts = self.names
+        lookup = {
+            **{k: 1 for k in opts},
+            **{func(name): 1 for name in opts for func in value},
+        }
+        self._lookup = lookup
+        self.transforms = value[:]
+
+
+# resolve variation
+# ----------------------------------
+
+
+def resolve_variations(value: Any) -> Callable[[str], str]:
+    """Resolve given value into callables.
+
+    Supported:
+        - string names (see rym.alias.variation)
+        - callables (should take and return a single string)
+        - iterables of either of the others
+
+    Arguments:
+        value: One of the supported input.
+    Returns:
+        An iterable of resolved variation callables.
+    Raises:
+        TypeError for invalid input.
+    """
+    return list(_resolve_variations(value))
+
+
+@singledispatch
+def _resolve_variations(value: Any) -> Generator[Callable[[str], str], None, None]:
+    if value is not None:
+        raise TypeError(f"invalid variation: {value}")
+    yield from []
+
+
+@_resolve_variations.register(str)
+def _(value: str) -> Generator[Callable[[str], str], None, None]:
+    yield getattr(variation, value)
+
+
+@_resolve_variations.register(abc.Callable)
+def _(value: Callable) -> Generator[Callable[[str], str], None, None]:
+    yield value
+
+
+@_resolve_variations.register(abc.Iterable)
+def _(value: Iterable) -> Generator[Callable[[str], str], None, None]:
+    for item in value:
+        yield from _resolve_variations(item)
 
 
 # __END__
