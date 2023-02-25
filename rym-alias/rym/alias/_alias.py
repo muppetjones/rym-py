@@ -8,6 +8,8 @@ import logging
 from collections import defaultdict
 from typing import Callable, Iterable, Mapping
 
+from . import variation
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -17,8 +19,8 @@ class AliasError(KeyError):
 
 def _default_transforms() -> Iterable[Callable[[str], str]]:
     return [
-        lambda x: x.lower(),
-        lambda x: x.upper(),
+        variation.upper,
+        variation.lower,
     ]
 
 
