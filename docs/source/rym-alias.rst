@@ -57,7 +57,7 @@ Use an Aliaser to Provide Multiple Aliases
 
 ```python
 >>> from rym.alias import Aliaser
->>> x = Aliaser.build(
+>>> x = AliasResolver.build(
 ...   prd=['prod'],
 ...   dev=['develop'],
 ... ).add(

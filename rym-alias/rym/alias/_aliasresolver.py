@@ -14,15 +14,26 @@ from typing import Any, Callable, Generator, Iterable, Mapping, Optional
 
 from ._alias import Alias
 
-try:
-    import toml
-except ImportError:
-    toml = None
 
-try:
-    import yaml
-except ImportError:
-    yaml = None
+def _load_pkg(names: Iterable[str]):
+    import importlib
+
+    for name in names:
+        try:
+            return importlib.import_module(name)
+        except ImportError:
+            continue
+    return None
+
+
+toml = _load_pkg(
+    [
+        "tomllib",  # py 3.11+
+        "tomlkit",
+        "toml",
+    ]
+)
+yaml = _load_pkg(["yaml"])
 
 LOGGER = logging.getLogger(__name__)
 _DEFAULT = __file__
@@ -52,11 +63,11 @@ class AliasResolver:
         See also:
             alias_factory
         """
-        aliases = alias_factory(*args, transforms=transforms, **kwargs)
+        aliases = resolve_aliases(*args, transforms=transforms, **kwargs)
         return cls(aliases=aliases)
 
 
-def alias_factory(
+def resolve_aliases(
     *args, transforms: Optional[Iterable[Callable[[str], str]]] = None, **kwargs
 ) -> Iterable[Alias]:
     """Build aliases from multiple supported formats.
@@ -71,6 +82,8 @@ def alias_factory(
         - Encoding of supported format
             - May be string (json only)
             - May be file path (json, toml, yaml)
+
+    NOTE: TOML requires a root object (not an array)
 
     Arguments:
             *args: Supported formats as positional arguments
@@ -119,14 +132,17 @@ def _(value: Mapping) -> Generator[Alias, None, None]:
         yield Alias(**value)
     except TypeError:
         for identity, aliases in value.items():
-            yield Alias(identity, aliases)
+            if identity == "aliases":
+                yield from _yield_aliases(aliases)
+            else:
+                yield Alias(identity, aliases)
 
 
 @_yield_aliases.register(Path)
 def _(value: Path) -> Generator[Alias, None, None]:
     cases = {
-        ".json": json.dumps,
-        ".toml": getattr(toml, "dumps", None),
+        ".json": json.loads,
+        ".toml": getattr(toml, "loads", None),
         ".yaml": getattr(yaml, "safe_load", None),
         ".yml": getattr(yaml, "safe_load", None),
     }

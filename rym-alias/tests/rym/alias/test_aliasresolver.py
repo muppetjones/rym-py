@@ -11,16 +11,7 @@ from unittest import TestCase, mock, skipIf
 import rym.alias as MOD
 from rym.alias import variation
 from rym.alias._alias import Alias, _default_transforms
-
-try:
-    import toml
-except ImportError:
-    toml = None
-
-try:
-    import yaml
-except ImportError:
-    yaml = None
+from rym.alias._aliasresolver import toml, yaml  # if installed
 
 LOGGER = logging.getLogger(__name__)
 
@@ -37,6 +28,10 @@ class ThisTestCase(TestCase):
 class TestBuild(ThisTestCase):
     """Test initialization classmethod."""
 
+
+class TestResolveAlias(ThisTestCase):
+    """Test function."""
+
     def test_supports_explicit_aliases(self):
         given = [
             Alias("a", None, None),
@@ -51,10 +46,12 @@ class TestBuild(ThisTestCase):
         given = [
             {"identity": "a", "aliases": None, "transforms": [variation.deesser]},
             {"identity": "b", "aliases": ["bee"]},
+            {"aliases": [{"identity": "c", "aliases": ["see"]}]},
         ]
         expected = [
             Alias("a", None, [variation.deesser]),
             Alias("b", ["bee"]),
+            Alias("c", ["see"]),
         ]
         subject = MOD.AliasResolver.build(given)
         found = subject.aliases
@@ -101,8 +98,8 @@ class TestBuild(ThisTestCase):
         self.assertEqual(expected, found)
 
 
-class TestEncoding(ThisTestCase):
-    """Test feature."""
+class TestResolveAliasEncoding(ThisTestCase):
+    """Test function feature."""
 
     def test_raises_if_unknown_extension(self):
         given = Path("foo.txt")
@@ -113,10 +110,12 @@ class TestEncoding(ThisTestCase):
     # ----------------------------------
 
     def assert_loads_aliases_from_root(self, suffix: str, encode: Callable):
-        data = [
-            {"identity": "foo", "aliases": ["bar"], "transforms": "deesser"},
-            {"identity": "hello", "aliases": ["aloha"]},
-        ]
+        data = {
+            "aliases": [
+                {"identity": "foo", "aliases": ["bar"], "transforms": "deesser"},
+                {"identity": "hello", "aliases": ["aloha"]},
+            ]
+        }
         expected = [
             Alias("foo", ["bar"], [variation.deesser]),
             Alias("hello", ["aloha"], _default_transforms()),
@@ -167,10 +166,12 @@ class TestEncoding(ThisTestCase):
 
     @skipIf(not toml, "toml not intalled")
     def test_toml_as_string(self):
-        data = [
-            {"identity": "foo", "aliases": ["bar"], "transforms": "deesser"},
-            {"identity": "hello", "aliases": ["aloha"]},
-        ]
+        data = {
+            "aliases": [
+                {"identity": "foo", "aliases": ["bar"], "transforms": "deesser"},
+                {"identity": "hello", "aliases": ["aloha"]},
+            ]
+        }
         given = toml.dumps(data)
         with self.assertRaises(ValueError):
             MOD.AliasResolver.build(given)

@@ -10,6 +10,7 @@ test = [
     "coverage>=7.2.0",
     "toml>=0.10.2",
     "pyyaml>=6.0",
+    "tomlkit>=0.11.6",
 ]
 
 [tool.pdm.scripts]
