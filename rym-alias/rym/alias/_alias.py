@@ -5,6 +5,7 @@
 
 import dataclasses as dcs
 import logging
+from collections import defaultdict
 from typing import Callable, Iterable, Mapping
 
 LOGGER = logging.getLogger(__name__)
@@ -23,13 +24,33 @@ def _default_transforms() -> Iterable[Callable[[str], str]]:
 
 @dcs.dataclass
 class Alias:
+    """Simple name lookup.
+
+    - Provides basic name lookup.
+    - Support for enumerating common (or custom) variations, including
+        upper and lower case or (de)essing.
+
+    Attributes:
+        identity: The "true name" of the alias.
+        aliases: An iterable of names to alias.
+        transforms: An iterable of functions to apply to each alias.
+            Each function should take one string and return one string.
+            Default: Upper and lower case of each alias.
+    """
+
     identity: str
     aliases: Iterable[str]
     transforms: Iterable[Callable[[str], str]] = dcs.field(
         default_factory=_default_transforms
     )
-    _lookup: Mapping[str, int] = dcs.field(init=False, repr=False)
     logger: logging.Logger = None
+    _lookup: Mapping[str, int] = dcs.field(init=False, repr=False)
+    _attempts: Mapping[str, int] = dcs.field(
+        init=False,
+        repr=False,
+        hash=False,
+        compare=False,
+    )
 
     def __post_init__(self):
         # allow users to explicitly provide 'None"
@@ -37,7 +58,9 @@ class Alias:
         self.logger = self.logger or LOGGER
         self.transforms = self.transforms or []
 
+        # setup alias internal data
         opts = self.names
+        self._attempts = defaultdict(int, {k: 0 for k in self.names})
         self._lookup = {
             **{k: 1 for k in opts},
             **{func(name): 1 for name in opts for func in self.transforms},
@@ -79,6 +102,7 @@ class Alias:
         Raises:
             AliasError (KeyError) if unknown alias given.
         """
+        self._attempts[value] += 1  # know which aliases are used / needed
         match = self._lookup.get(value)  # faster than itrable and try:except
         if not match:
             raise AliasError(value)

@@ -186,5 +186,22 @@ class TestIdentify(ThisTestCase):
                 found = subject.identify(value)
                 self.assertEqual(expected, found)
 
+    def test_tracks_attempts(self):
+        given = {
+            "identity": "a",
+            "aliases": list("abc"),
+        }
+        subject = MOD.Alias(**given)
+
+        expected = {"a": 2, "b": 1, "c": 0, "d": 6, "foo": 3}
+        for k, v in expected.items():
+            for i in range(v):
+                try:
+                    subject.identify(k)
+                except KeyError:
+                    ...
+        found = subject._attempts
+        self.assertEqual(expected, found)
+
 
 # __END__
