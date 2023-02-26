@@ -15,7 +15,7 @@ Create an Alias
 'prd'
 >>> x.identity
 'prd'
->>> x.all_aliases()
+>>> x.all_names()
 ['PRD', 'PROD', 'PRODUCTION', 'prd', 'prod', 'production']
 
 
@@ -35,7 +35,7 @@ transformations may be provided, too.
 'fooBar'
 >>> x.identify('foo_bar')
 'fooBar'
->>> x.all_aliases()
+>>> x.all_names()
 ['fooBar', 'foo_bar']
 
 """
@@ -100,6 +100,10 @@ class Alias:
         self.logger = self.logger or LOGGER
         self.transforms = resolve_variations(self.transforms)
 
+        # support single alias
+        if isinstance(self.aliases, str):
+            self.aliases = [self.aliases]
+
         # setup alias internal data
         opts = self.names
         self._attempts = defaultdict(int, {k: 0 for k in self.names})
@@ -121,7 +125,7 @@ class Alias:
         self._lookup.update(lookup)
         self.aliases.append(value)
 
-    def all_aliases(self) -> Iterable[str]:
+    def all_names(self) -> Iterable[str]:
         """Return all known aliases and transformations."""
         return sorted(self._lookup.keys())
 

@@ -89,7 +89,7 @@ class TestBuildLookupIndex(ThisTestCase):
         expected = {
             "a": 0,  # explicit for example
             "A": 0,
-            **{k: 1 for k in given[1].all_aliases()},  # auto for ease
+            **{k: 1 for k in given[1].all_names()},  # auto for ease
         }
         subject = MOD.AliasResolver(given)
         subject._lookup = None

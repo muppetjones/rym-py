@@ -28,12 +28,12 @@ Use an AliasResolver to Manage Multiple Aliases
 You can specify transforms that apply to all aliases
 And if you need to provide an alias to a keyword, just use a dictionary.
 
-```python
+
 >>> x.add({'transforms': 'etl'}) # doctest: +ELLIPSIS
 AliasResolver(aliases=[...])
 >>> x.identify('etl')
 'transforms'
-```
+
 """
 
 import dataclasses as dcs
@@ -140,7 +140,7 @@ class AliasResolver:
     def _build_lookup_index(self) -> None:
         """Index alias lookup."""
         self._lookup = {
-            k: i for i, x in enumerate(self.aliases) for k in x.all_aliases()
+            k: i for i, x in enumerate(self.aliases) for k in x.all_names()
         }
         self._attempts = defaultdict(int, {k: 0 for k in self._lookup.keys()})
 

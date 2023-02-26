@@ -4,8 +4,9 @@
 import logging
 from unittest import TestCase, mock
 
-import rym.alias as MOD
 import stringcase as sc
+
+import rym.alias as MOD
 from rym.alias import variation
 
 LOGGER = logging.getLogger(__name__)
@@ -18,7 +19,7 @@ class ThisTestCase(TestCase):
 class TestInit(ThisTestCase):
     """Test initialization."""
 
-    def test_creates_default_aliases(self):
+    def test_creates_default_transform_aliases(self):
         given = {
             "identity": "fooBar",
             "aliases": ["FOO_bar"],
@@ -31,10 +32,10 @@ class TestInit(ThisTestCase):
             ]
         )
         subject = MOD.Alias(**given)
-        found = subject.all_aliases()
+        found = subject.all_names()
         self.assertEqual(expected, found)
 
-    def test_creates_requested_aliases(self):
+    def test_creates_transform_aliases(self):
         given = {
             "identity": "fooBar",
             "aliases": ["FOO_bar"],
@@ -48,7 +49,7 @@ class TestInit(ThisTestCase):
             ]
         )
         subject = MOD.Alias(**given)
-        found = subject.all_aliases()
+        found = subject.all_names()
         self.assertEqual(expected, found)
 
     def test_disable_transform(self):
@@ -71,6 +72,16 @@ class TestInit(ThisTestCase):
         assert "fooBar" == subject.identify("FOOBAR")
         with self.assertRaises(KeyError):
             subject.identify("FOO_BAR")
+
+    def test_single_alias(self):
+        given = {
+            "identity": "fooBar",
+            "aliases": "meh",
+        }
+        subject = MOD.Alias(**given)
+        expected = "fooBar"
+        found = subject.identify("MEH")
+        self.assertEqual(expected, found)
 
     def test_transform_by_name(self):
         given = {
