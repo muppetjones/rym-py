@@ -1,0 +1,75 @@
+[tool.pdm]
+[tool.pdm.dev-dependencies]
+ipy = [
+    "ipykernel>=6.16.2",
+    "jupyterlab>=3.6.1",
+]
+test = [
+    "pytest>=7.2.1",
+    "pytest-cov>=4.0.0",
+    "coverage>=7.2.0",
+    "toml>=0.10.2",
+    "pyyaml>=6.0",
+    "tomlkit>=0.11.6",
+    "tox>=4.4.6",
+]
+dev = [
+    "pre-commit>=2.21.0",
+]
+
+[tool.pdm.scripts]
+init-hooks = "pre-commit install"
+rm-hooks = "pre-commit uninstall"
+lint = "flake8 rym"
+clean = "find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete"
+test = "pytest"
+
+[project]
+name = "rym-alias"
+version = "0.1.0"
+description = "Simple aliasing."
+authors = [
+    {name = "Stephen Bush", email = "2041619+muppetjones@users.noreply.github.com"},
+]
+dependencies = [
+    "stringcase>=1.2.0",
+]
+requires-python = ">=3.7"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-pep517>=1.0"]
+build-backend = "pdm.pep517.api"
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -vvv --cov=rym"
+testpaths = [
+    "tests",
+]
+
+[tool.black]
+line-length = 83
+target-version = ["py38", "py39", "py310"]
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+atomic = true
+line_length = 83
+float_to_top = true
+skip_glob = "**/__init__.py"

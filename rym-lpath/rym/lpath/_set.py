@@ -1,5 +1,33 @@
 #!/usr/bin/env python3
-"""Set values on indexed objects.
+"""
+Set any nested index, item, or attribute
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+>>> from types import SimpleNamespace
+>>> from rym import lpath
+>>> example = [
+...    {"a": list('xyz'), "b": 42},
+...    SimpleNamespace(foo={"bar": "baz"}),
+... ]
+>>> lpath.set(example, '1.foo.bar', 'nope')
+>>> example[1].foo['bar']
+'nope'
+
+You can also add new keys with mappings:
+
+>>> lpath.set(example, '0.c', 'u l8r')
+>>> example[0]['c']
+'u l8r'
+
+**Recommended: Just use `lpath.get`**
+
+>>> lpath.get(example, '0.a').append('aa')
+>>> lpath.get(example, '0.a.3')
+'aa'
+>>> setattr(lpath.get(example, '1'), 'baz', 42)
+>>> lpath.get(example, '1.baz')
+42
+
 
 """
 
@@ -53,9 +81,20 @@ def set(
 
 @singledispatch
 def _set_to(instance: Any, key: str, value: Any) -> None:
-    a = getattr(instance, key)
+    """Set value at specified key on the instance.
+
+    Arugments:
+        instance: The object to set the value on.
+        key: The name or index on the instance.
+        value: The value to set.
+    Returns:
+        None.
+    Raises:
+        AttributeError, KeyError, or IndexError if key does not exist.
+    """
+    _ = getattr(instance, key)  # raise if key not available
     setattr(instance, key, value)
-    b = getattr(instance, key)
+    _ = getattr(instance, key)  # raise if key not set
 
 
 @_set_to.register(str)

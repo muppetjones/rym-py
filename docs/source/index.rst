@@ -1,5 +1,5 @@
 
-Welcome to mjb-py's documentation!
+Welcome to rym-py's documentation!
 ==================================
 
 
@@ -7,7 +7,8 @@ Welcome to mjb-py's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   api
+   rym-alias
+   rym-lpath
 
 
 Indices and tables

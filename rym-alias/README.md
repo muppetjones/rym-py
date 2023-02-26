@@ -1,0 +1,3 @@
+# rym-alias
+
+Simple aliasing.

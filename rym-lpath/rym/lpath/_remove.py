@@ -1,5 +1,20 @@
 #!/usr/bin/env python3
-"""Item removal functionality.
+"""
+Remove any nested index, item, or attribute
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+>>> from types import SimpleNamespace
+>>> from rym import lpath
+>>> example = [
+...    {"a": list('xyz'), "b": 42},
+...    SimpleNamespace(foo={"bar": "baz"}),
+... ]
+>>> lpath.pop(example, '1.foo.bar')
+'baz'
+>>> lpath.get(example, '1.foo.bar')
+Traceback (most recent call last):
+    ...
+KeyError: '1.foo.bar'
 
 """
 

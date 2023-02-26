@@ -15,16 +15,16 @@ LOGGER = logging.getLogger(__name__)
 
 def _add_namespaces_to_sys_path():
     parts = Path(__file__).parts
-    index = parts.index("mjb-py") + 1
+    index = parts.index("rym-py") + 1
     root = Path(*parts[:index]).resolve()
-    paths = [str(Path(root, x)) for x in ("mjb-lpath",)]
+    paths = [str(Path(root, x)) for x in ("rym-lpath",)]
     sys.path.extend(paths)
 
 
 _add_namespaces_to_sys_path()
 
 
-project = "mjb"
+project = "rym"
 copyright = "2023, Stephen Bush"
 author = "Stephen Bush"
 
@@ -69,7 +69,7 @@ html_static_path = ["_static"]
 html_context = {
     "display_github": True,  # Integrate GitHub
     "github_user": "muppetjones",  # Username
-    "github_repo": "mjb-py",  # Repo name
+    "github_repo": "rym-py",  # Repo name
     "github_version": "main",  # Version
     "conf_py_path": "/source/",  # Path in the checkout to the docs root
 }

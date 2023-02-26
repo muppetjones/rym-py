@@ -1,6 +1,27 @@
 #!/usr/bin/env python3
-"""Accessor for any indexed object, e.g., iterables and mappings.
+"""
+Access any nested index, item, or attribute
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+>>> from types import SimpleNamespace
+>>> from rym import lpath
+>>> example = [
+...    {"a": list('xyz'), "b": 42},
+...    SimpleNamespace(foo={"bar": "baz"}),
+... ]
+>>> lpath.get(example, '1.foo.bar')
+'baz'
+
+Use a default value if the item doesn't exist
+
+
+>>> lpath.get(example, 'hello.world', default='oops')
+'oops'
+
+Or, specify multiple options and get the first match
+
+>>> lpath.get(example, ['hello.world', '0.a.1'])
+'y'
 
 """
 
@@ -14,6 +35,10 @@ from ._delim import get_delimiter
 
 LOGGER = logging.getLogger(__name__)
 __DEFAULT = "any random string that is unlikely to be provided"
+
+
+class InvalidKey(ValueError):
+    """Raise if given an unsupported key type."""
 
 
 def get(
@@ -39,7 +64,9 @@ def get(
     delim = delim or get_delimiter()
     try:
         return _get(key, value, delim)
-    except (AttributeError, KeyError, IndexError):
+    except InvalidKey:
+        raise
+    except (AttributeError, KeyError, IndexError, ValueError):
         if __DEFAULT != default:
             return default
         raise
@@ -47,7 +74,7 @@ def get(
 
 @singledispatch
 def _get(key: Any, value: Any, delim: str) -> Any:
-    raise ValueError(
+    raise InvalidKey(
         f"invalid key: {key}, ({type(key)}); expected str or list of str"
     )
 
@@ -72,7 +99,7 @@ def _(key: Iterable[str], value: str, delim: str) -> Any:
         try:
             parts = k.split(delim)
             return _get_from(value, deque(parts))
-        except (AttributeError, IndexError, KeyError) as err:
+        except (AttributeError, IndexError, KeyError, ValueError):
             continue
     raise KeyError(f"no matches: {key}")
 
