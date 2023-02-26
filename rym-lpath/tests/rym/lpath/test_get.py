@@ -5,7 +5,7 @@ import itertools
 import logging
 from types import SimpleNamespace
 from typing import Mapping
-from unittest import TestCase, mock
+from unittest import TestCase
 
 import rym.lpath as MOD
 
@@ -41,7 +41,7 @@ class TestGet(ThisTestCase):
         for exc_type, key in tests:
             with self.subTest(key=key):
                 with self.assertRaisesRegex(exc_type, "invalid key"):
-                    MOD.get({}, key)
+                    MOD.get({}, key, default=None)
 
     def test_raises_if_invalid_path(self):
         # i.e., given key is invalid for the object type
@@ -130,6 +130,7 @@ class TestGetWithDefault(ThisTestCase):
                 # (expected, given)
                 (default, ["foo.a", "foo.x"]),
                 (default, "x"),
+                (default, "meh.boo"),
             ]
         )
 
@@ -188,6 +189,7 @@ class TestGetWithMultiKey(ThisTestCase):
                 (example["foo"]["bar"], ["foo.bar", "foo.x"]),
                 (example["foo"]["bar"], ["foo.x", "foo.bar"]),
                 (example["foo"]["bar"], ["a", "foo.bar", "foo.x"]),
+                (example["foo"]["bar"], ["meh.ugh", "foo.bar", "foo.x"]),
             ]
         )
 

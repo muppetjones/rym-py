@@ -12,6 +12,14 @@ tests.rym.lpath.test\_delim module
    :undoc-members:
    :show-inheritance:
 
+tests.rym.lpath.test\_doctests module
+-------------------------------------
+
+.. automodule:: tests.rym.lpath.test_doctests
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 tests.rym.lpath.test\_get module
 --------------------------------
 
