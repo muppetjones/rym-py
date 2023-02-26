@@ -71,4 +71,3 @@ atomic = true
 line_length = 83
 float_to_top = true
 skip_glob = "**/__init__.py"
-multiline_output = 3

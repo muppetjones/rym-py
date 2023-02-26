@@ -7,15 +7,23 @@ import dataclasses as dcs
 import itertools
 import json
 import logging
-from collections import abc
+from collections import ChainMap, abc, defaultdict
 from functools import singledispatch
 from pathlib import Path
+from pprint import pformat
 from typing import Any, Callable, Generator, Iterable, Mapping, Optional
 
 from ._alias import Alias
 
 
 def _load_pkg(names: Iterable[str]):
+    """Safe import. Allow variable feature set based on available packages.
+
+    Arguments:
+        names: List of acceptable package names (with compatible interfaces).
+    Returns:
+        The loaded module or None.
+    """
     import importlib
 
     for name in names:
@@ -29,7 +37,7 @@ def _load_pkg(names: Iterable[str]):
 toml = _load_pkg(
     [
         "tomllib",  # py 3.11+
-        "tomlkit",
+        "tomlkit",  # style-preserving
         "toml",
     ]
 )
@@ -39,17 +47,27 @@ LOGGER = logging.getLogger(__name__)
 _DEFAULT = __file__
 
 
+class CollisionError(ValueError):
+    """Raise for an alias collision."""
+
+
 @dcs.dataclass
 class AliasResolver:
     """Group of aliases."""
 
     aliases: Iterable[Alias]
+    logger: logging.Logger = None
+
+    def __post_init__(self):
+        self.logger = self.logger or LOGGER
 
     @classmethod
     def build(
         cls,
         *args,
+        strict: bool = True,
         transforms: Optional[Iterable[Callable[[str], str]]] = _DEFAULT,
+        logger: logging.Logger = None,
         _resolver: Callable = None,
         **kwargs,
     ) -> "AliasResolver":
@@ -57,23 +75,27 @@ class AliasResolver:
 
         Arguments:
             *args: Supported formats as positional arguments
+            strict: If true, will raise if collisions detected.
             transforms: Optional transforms to apply to all aliases.
                 If given, will replace existing transforms on each alias.
                 Use 'None' to disable all transformations
             _resolver: Inject an alias factory.
             **kwargs: Supported formats as keyword arguments
+        Returns:
+            An AliasResolver instance.
         See also:
             alias_factory
         """
         _resolver = _resolver or resolve_aliases
         aliases = _resolver(*args, transforms=transforms, **kwargs)
-        instance = cls(aliases=[])
-        instance.add(aliases)
+        instance = cls(aliases=[], logger=logger)
+        instance.add(aliases, strict=strict)
         return instance
 
     def add(
         self,
         *args,
+        strict: bool = True,
         transforms: Optional[Iterable[Callable[[str], str]]] = _DEFAULT,
         _resolver: Callable = None,
         **kwargs,
@@ -81,13 +103,43 @@ class AliasResolver:
         """Add aliases to self."""
         _resolver = _resolver or resolve_aliases
         aliases = _resolver(*args, transforms=transforms, **kwargs)
+        collisions = self.find_collisions(self.aliases, aliases)
+        if not collisions:
+            ...
+        elif strict:
+            raise CollisionError(collisions)
+        else:
+            self.logger.warning("Collisions detected: %s", collisions)
 
         self.aliases.extend(aliases)
         return
 
+    @classmethod
+    def find_collisions(
+        cls,
+        *aliases: Iterable[Alias],
+        logger: logging.Logger = None,
+    ) -> Iterable[str]:
+        """Check for alias collisions."""
+        logger = logger or LOGGER
+        lookup = ChainMap(*[x._lookup for x in resolve_aliases(aliases)])
+        keys = set()
+        lost = defaultdict(list)
+        collisions = set()
+        for child in lookup.maps:
+            both = keys & child.keys()
+            for k in both:
+                lost[k].append(child[k])
+            keys |= child.keys()
+            collisions |= both
+        logger.debug("Lost aliases due to collisions: %s", pformat(lost))
+        return sorted(collisions)
+
 
 def resolve_aliases(
-    *args, transforms: Optional[Iterable[Callable[[str], str]]] = None, **kwargs
+    *args,
+    transforms: Optional[Iterable[Callable[[str], str]]] = _DEFAULT,
+    **kwargs,
 ) -> Iterable[Alias]:
     """Build aliases from multiple supported formats.
 

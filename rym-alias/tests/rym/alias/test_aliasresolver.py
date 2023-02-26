@@ -28,6 +28,14 @@ class ThisTestCase(TestCase):
 class TestAddAliases(ThisTestCase):
     """Test method."""
 
+    def test_raises_if_collisions_and_strict(self):
+        subject = MOD.AliasResolver([])
+        subject.logger = mock.Mock()
+        subject.add(foo=["bar"])
+        subject.add(foo=["bar"], strict=False)  # should not raise
+        with self.assertRaisesRegex(ValueError, "bar"):
+            subject.add(foo=["BAR"], strict=True)  # due to transform
+
     def test_appends_resolved_aliases(self):
         subject = MOD.AliasResolver.build({"foo": ["bar"]})
         subject.add({"hello": ["hola"]})
@@ -40,13 +48,48 @@ class TestAddAliases(ThisTestCase):
 
 
 class TestBuild(ThisTestCase):
-    """Test initialization classmethod."""
+    """Test classmethod."""
+
+    def test_raises_if_collisions_and_strict(self):
+        given = [
+            {"foo": ["bar"]},
+            {"baz": ["bar"]},
+        ]
+        MOD.AliasResolver.build(
+            given,
+            strict=False,
+            logger=mock.Mock(),
+        )  # should not raise
+        with self.assertRaisesRegex(ValueError, "bar"):
+            MOD.AliasResolver.build(
+                given,
+                strict=True,
+                logger=mock.Mock(),
+            )  # should raise
 
     def test_stores_resolved_aliases(self):
         subject = MOD.AliasResolver.build({"foo": ["bar"]})
         expected = [Alias("foo", ["bar"])]
         found = subject.aliases
         self.assertEqual(expected, found)
+
+
+class TestFindCollisions(ThisTestCase):
+    """Test classmethod."""
+
+    def test_returns_iterable(self):
+        tests = [
+            # (expected, given)
+            (["FOO", "foo"], [[Alias("foo", ["bar"])], [Alias("FOO", ["baz"])]]),
+            (
+                ["BAR", "bar"],
+                [Alias("foo", ["Bar", "ick"]), Alias("meh", ["bar"])],
+            ),
+        ]
+        for expected, aliases in tests:
+            with self.subTest(expected):
+                found = MOD.AliasResolver.find_collisions(aliases)
+                self.assertEqual(expected, found)
 
 
 class TestResolveAlias(ThisTestCase):
@@ -58,8 +101,7 @@ class TestResolveAlias(ThisTestCase):
             Alias("b", None, None),
         ]
         expected = given[:]
-        subject = MOD.AliasResolver.build(given)
-        found = subject.aliases
+        found = MOD.resolve_aliases(given)
         self.assertEqual(expected, found)
 
     def test_supports_implicit_aliases(self):
@@ -73,15 +115,14 @@ class TestResolveAlias(ThisTestCase):
             Alias("b", ["bee"]),
             Alias("c", ["see"]),
         ]
-        subject = MOD.AliasResolver.build(given)
-        found = subject.aliases
+        found = MOD.resolve_aliases(given)
+        self.maxDiff = None
         self.assertEqual(expected, found)
 
     def test_supports_None(self):
         given = None
         expected = []
-        subject = MOD.AliasResolver.build(given)
-        found = subject.aliases
+        found = MOD.resolve_aliases(given)
         self.assertEqual(expected, found)
 
     def test_supports_mappings(self):
@@ -93,8 +134,7 @@ class TestResolveAlias(ThisTestCase):
             Alias("a", None),  # default transforms
             Alias("b", ["bee"]),  # default transforms
         ]
-        subject = MOD.AliasResolver.build(given)
-        found = subject.aliases
+        found = MOD.resolve_aliases(given)
         self.assertEqual(expected, found)
 
     def test_supports_kwargs(self):
@@ -106,8 +146,7 @@ class TestResolveAlias(ThisTestCase):
             Alias("a", None),  # default transforms
             Alias("b", ["bee"]),  # default transforms
         ]
-        subject = MOD.AliasResolver.build(**kwargs)
-        found = subject.aliases
+        found = MOD.resolve_aliases(**kwargs)
         self.assertEqual(expected, found)
 
     def test_transform_set_on_all(self):
@@ -120,8 +159,7 @@ class TestResolveAlias(ThisTestCase):
             Alias("a", None, [variation.esser]),
             Alias("b", ["bee"], [variation.esser]),
         ]
-        subject = MOD.AliasResolver.build(*args, **kwargs)
-        found = subject.aliases
+        found = MOD.resolve_aliases(*args, **kwargs)
         self.assertEqual(expected, found)
 
 
