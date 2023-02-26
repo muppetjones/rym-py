@@ -1,6 +1,39 @@
 #!/usr/bin/env python3
-""".
+"""AliasResolver Dataclass.
 
+Usage
+==================================
+
+Use an AliasResolver to Manage Multiple Aliases
+----------------------------------
+
+
+>>> from rym.alias import AliasResolver
+>>> import stringcase as sc
+>>> x = AliasResolver.build(
+...   prd=['prod'],
+...   dev=['develop'],
+... ).add(
+...   alp=['alpha'],
+...   transforms=[sc.titlecase],
+... )
+>>> x.identify('PROD')
+'prd'
+>>> x.identify('develop')
+'dev'
+>>> x.identify('Alpha')
+'alp'
+
+
+You can specify transforms that apply to all aliases
+And if you need to provide an alias to a keyword, just use a dictionary.
+
+```python
+>>> x.add({'transforms': 'etl'}) # doctest: +ELLIPSIS
+AliasResolver(aliases=[...])
+>>> x.identify('etl')
+'transforms'
+```
 """
 
 import dataclasses as dcs
@@ -13,7 +46,7 @@ from pathlib import Path
 from pprint import pformat
 from typing import Any, Callable, Generator, Iterable, Mapping, Optional
 
-from ._alias import Alias
+from ._alias import Alias, AliasError
 
 
 def _load_pkg(names: Iterable[str]):
@@ -56,10 +89,22 @@ class AliasResolver:
     """Group of aliases."""
 
     aliases: Iterable[Alias]
-    logger: logging.Logger = None
+    logger: logging.Logger = dcs.field(
+        default=None, repr=False, hash=False, compare=False
+    )
+    _lookup: Mapping[str, int] = dcs.field(init=False, repr=False)
+    _attempts: Mapping[str, int] = dcs.field(
+        init=False,
+        repr=False,
+        hash=False,
+        compare=False,
+    )
 
     def __post_init__(self):
         self.logger = self.logger or LOGGER
+
+        # setup alias internal data
+        self._build_lookup_index()
 
     @classmethod
     def build(
@@ -92,6 +137,13 @@ class AliasResolver:
         instance.add(aliases, strict=strict)
         return instance
 
+    def _build_lookup_index(self) -> None:
+        """Index alias lookup."""
+        self._lookup = {
+            k: i for i, x in enumerate(self.aliases) for k in x.all_aliases()
+        }
+        self._attempts = defaultdict(int, {k: 0 for k in self._lookup.keys()})
+
     def add(
         self,
         *args,
@@ -99,7 +151,7 @@ class AliasResolver:
         transforms: Optional[Iterable[Callable[[str], str]]] = _DEFAULT,
         _resolver: Callable = None,
         **kwargs,
-    ) -> None:
+    ) -> "AliasResolver":
         """Add aliases to self."""
         _resolver = _resolver or resolve_aliases
         aliases = _resolver(*args, transforms=transforms, **kwargs)
@@ -112,7 +164,8 @@ class AliasResolver:
             self.logger.warning("Collisions detected: %s", collisions)
 
         self.aliases.extend(aliases)
-        return
+        self._build_lookup_index()
+        return self  # support chaining
 
     @classmethod
     def find_collisions(
@@ -134,6 +187,22 @@ class AliasResolver:
             collisions |= both
         logger.debug("Lost aliases due to collisions: %s", pformat(lost))
         return sorted(collisions)
+
+    def identify(self, value: str) -> str:
+        """Return identity for the given alias value.
+
+        Arguments:
+            value: Alias to match.
+        Returns:
+            Identity for the given alias.
+        Raises:
+            AliasError (KeyError) if unknown alias given.
+        """
+        self._attempts[value] += 1  # know which aliases are used / needed
+        idx = self._lookup.get(value)  # faster than itrable and try:except
+        if idx is None:
+            raise AliasError(value)
+        return self.aliases[idx].identity
 
 
 def resolve_aliases(

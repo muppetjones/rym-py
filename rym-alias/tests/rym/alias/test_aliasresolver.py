@@ -4,6 +4,7 @@
 import json
 import logging
 from pathlib import Path
+from pprint import pformat
 from tempfile import TemporaryDirectory
 from typing import Callable
 from unittest import TestCase, mock, skipIf
@@ -23,6 +24,9 @@ class ThisTestCase(TestCase):
         tmpdir = TemporaryDirectory()
         self.addCleanup(tmpdir.cleanup)
         return Path(tmpdir.name)
+
+    def pcompare(self, a, b) -> str:
+        return f"\n===\n{pformat(a)}\n---\n{pformat(b)}\n"
 
 
 class TestAddAliases(ThisTestCase):
@@ -74,6 +78,26 @@ class TestBuild(ThisTestCase):
         self.assertEqual(expected, found)
 
 
+class TestBuildLookupIndex(ThisTestCase):
+    """Test method."""
+
+    def test_indexes_by_alias(self):
+        given = [
+            Alias("a", []),
+            Alias("b", ["bee"]),
+        ]
+        expected = {
+            "a": 0,  # explicit for example
+            "A": 0,
+            **{k: 1 for k in given[1].all_aliases()},  # auto for ease
+        }
+        subject = MOD.AliasResolver(given)
+        subject._lookup = None
+        subject._build_lookup_index()
+        found = subject._lookup
+        self.assertEqual(expected, found)
+
+
 class TestFindCollisions(ThisTestCase):
     """Test classmethod."""
 
@@ -90,6 +114,60 @@ class TestFindCollisions(ThisTestCase):
             with self.subTest(expected):
                 found = MOD.AliasResolver.find_collisions(aliases)
                 self.assertEqual(expected, found)
+
+
+class TestIdentify(ThisTestCase):
+    """Test function."""
+
+    # error path
+    # ----------------------------------
+
+    def test_raises_if_unknown_alias(self):
+        given = {
+            "identity": "fooBar",
+            "aliases": ["FOO_bar"],
+        }
+        subject = MOD.AliasResolver.build(**given)
+        with self.assertRaisesRegex(KeyError, "foo"):
+            subject.identify("foo")
+
+    # section
+    # ----------------------------------
+
+    def test_returns_identity_for_alias(self):
+        given = [
+            {"identity": "foo", "aliases": ["bar"]},
+            {"identity": "hello", "aliases": ["hola"]},
+        ]
+        tests = [
+            # (expected, given)
+            ("foo", "FOO"),
+            ("foo", "bar"),
+            ("hello", "HOLA"),
+        ]
+        subject = MOD.AliasResolver.build(given)
+        for expected, value in tests:
+            with self.subTest(value):
+                found = subject.identify(value)
+                self.assertEqual(expected, found)
+
+    def test_tracks_attempts(self):
+        given = [
+            {"identity": "foo", "aliases": ["bar"]},
+            {"identity": "hello", "aliases": ["hola"]},
+        ]
+        # use transforms=None to avoid enumerating all 0 attempts
+        subject = MOD.AliasResolver.build(given, transforms=None)
+        expected = {"foo": 2, "bar": 1, "hola": 0, "hello": 6, "bonjour": 3}
+        for k, v in expected.items():
+            for i in range(v):
+                try:
+                    subject.identify(k)
+                except KeyError:
+                    ...
+        found = subject._attempts
+        self.maxDiff = None
+        self.assertEqual(expected, found, self.pcompare(expected, found))
 
 
 class TestResolveAlias(ThisTestCase):

@@ -20,7 +20,7 @@ dev = [
 init-hooks = "pre-commit install"
 rm-hooks = "pre-commit uninstall"
 clean = "find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete"
-
+test = "pytest;"
 
 [project]
 name = "rym-alias"

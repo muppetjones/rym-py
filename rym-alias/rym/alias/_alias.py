@@ -1,5 +1,42 @@
 #!/usr/bin/env python3
-"""Alias dataclass.
+"""Alias Dataclass.
+
+Usage
+==================================
+
+Create an Alias
+----------------------------------
+
+>>> from rym.alias import Alias
+>>> x = Alias('prd', aliases=['prod', 'production'])
+>>> x.identify('prod')
+'prd'
+>>> x.identify('PROD')
+'prd'
+>>> x.identity
+'prd'
+>>> x.all_aliases()
+['PRD', 'PROD', 'PRODUCTION', 'prd', 'prod', 'production']
+
+
+Specify Transformations
+----------------------------------
+
+Upper and lower case transformations are performed by default, but additional
+transformations may be provided, too.
+
+> Note: A `lambda` isn't needed in this example as `snakecase` matches the
+> expected `Callable[[str], str]` signature already.
+
+>>> from rym.alias import Alias
+>>> import stringcase as sc
+>>> x = Alias('fooBar', [], transforms=[lambda x: sc.snakecase(x)])
+>>> x.identify('fooBar')
+'fooBar'
+>>> x.identify('foo_bar')
+'fooBar'
+>>> x.all_aliases()
+['fooBar', 'foo_bar']
 
 """
 
@@ -46,7 +83,9 @@ class Alias:
     transforms: Iterable[Callable[[str], str]] = dcs.field(
         default_factory=_default_transforms
     )
-    logger: logging.Logger = None
+    logger: logging.Logger = dcs.field(
+        default=None, repr=False, hash=False, compare=False
+    )
     _lookup: Mapping[str, int] = dcs.field(init=False, repr=False)
     _attempts: Mapping[str, int] = dcs.field(
         init=False,
