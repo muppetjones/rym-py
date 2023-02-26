@@ -14,8 +14,17 @@ The primary use is `lpath.get`. With `get`, you don't really need anything else
 as you can add, remove, and update once you've pulled the appropriate item.
 
 
+Usage
+----------------------------------
+
+.. automodule:: rym.lpath._get
+
+.. automodule:: rym.lpath._set
+
+
+
 API
-==================================
+----------------------------------
 
 .. automodule:: rym.lpath
     :members:

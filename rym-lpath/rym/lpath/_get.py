@@ -1,5 +1,28 @@
 #!/usr/bin/env python3
-"""Accessor for any indexed object, e.g., iterables and mappings.
+"""
+Access any nested index, item, or attribute
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+>>> from types import SimpleNamespace
+>>> from rym import lpath
+>>> example = [
+...    {"a": list('xyz'), "b": 42},
+...    SimpleNamespace(foo={"bar": "baz"}),
+... ]
+>>> lpath.get(example, '1.foo.bar')
+'baz'
+
+Use a default value if the item doesn't exist
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+>>> lpath.get(example, 'hello.world', default='oops')
+'oops'
+
+Or, specify multiple options and get the first match
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+>>> lpath.get(example, ['hello.world', '0.a.1'])
+'y'
 
 
 """
@@ -47,9 +70,7 @@ def get(
 
 @singledispatch
 def _get(key: Any, value: Any, delim: str) -> Any:
-    raise ValueError(
-        f"invalid key: {key}, ({type(key)}); expected str or list of str"
-    )
+    raise ValueError(f"invalid key: {key}, ({type(key)}); expected str or list of str")
 
 
 @_get.register(str)
@@ -72,7 +93,7 @@ def _(key: Iterable[str], value: str, delim: str) -> Any:
         try:
             parts = k.split(delim)
             return _get_from(value, deque(parts))
-        except (AttributeError, IndexError, KeyError) as err:
+        except (AttributeError, IndexError, KeyError):
             continue
     raise KeyError(f"no matches: {key}")
 

@@ -12,9 +12,16 @@ We could setup some AI service with NLP, but that's silly. We want things
 easier, not magic. We want to be explicit about the things we alias so
 that our users do not have to be.
 
+Usage
+----------------------------------
+
+.. automodule:: rym.alias._alias
+
+.. automodule:: rym.alias._aliasresolver
+
 
 API
-==================================
+----------------------------------
 
 .. automodule:: rym.alias
     :members:

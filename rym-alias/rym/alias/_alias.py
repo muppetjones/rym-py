@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
-"""Alias Dataclass.
-
-Usage
-==================================
-
+"""
 Create an Alias
-----------------------------------
+^^^^^^^^^^^^^^^
 
 >>> from rym.alias import Alias
 >>> x = Alias('prd', aliases=['prod', 'production'])
@@ -20,7 +16,7 @@ Create an Alias
 
 
 Specify Transformations
-----------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Upper and lower case transformations are performed by default, but additional
 transformations may be provided, too.

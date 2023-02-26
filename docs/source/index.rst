@@ -7,7 +7,8 @@ Welcome to rym-py's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   api
+   rym-alias
+   rym-lpath
 
 
 Indices and tables

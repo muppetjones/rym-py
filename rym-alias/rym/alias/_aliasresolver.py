@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
-"""AliasResolver Dataclass.
-
-Usage
-==================================
-
+"""
 Use an AliasResolver to Manage Multiple Aliases
-----------------------------------
-
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 >>> from rym.alias import AliasResolver
 >>> import stringcase as sc
@@ -24,10 +19,8 @@ Use an AliasResolver to Manage Multiple Aliases
 >>> x.identify('Alpha')
 'alp'
 
-
 You can specify transforms that apply to all aliases
 And if you need to provide an alias to a keyword, just use a dictionary.
-
 
 >>> x.add({'transforms': 'etl'}) # doctest: +ELLIPSIS
 AliasResolver(aliases=[...])
@@ -139,9 +132,7 @@ class AliasResolver:
 
     def _build_lookup_index(self) -> None:
         """Index alias lookup."""
-        self._lookup = {
-            k: i for i, x in enumerate(self.aliases) for k in x.all_names()
-        }
+        self._lookup = {k: i for i, x in enumerate(self.aliases) for k in x.all_names()}
         self._attempts = defaultdict(int, {k: 0 for k in self._lookup.keys()})
 
     def add(
@@ -292,9 +283,7 @@ def _(value: Path) -> Generator[Alias, None, None]:
 
     func = cases.get(value.suffix)
     if not func:
-        raise ValueError(
-            f"unavailable encoding: {value.suffix} ({value})"
-        ) from None
+        raise ValueError(f"unavailable encoding: {value.suffix} ({value})") from None
 
     content = value.read_text()
     data = func(content)
