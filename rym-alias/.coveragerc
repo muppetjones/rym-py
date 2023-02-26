@@ -1,6 +1,7 @@
 [run]
-omit = \
+omit =
     **/__init__.py
+    tests/*
 
 [report]
 show_missing = true

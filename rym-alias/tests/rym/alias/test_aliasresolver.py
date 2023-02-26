@@ -29,6 +29,21 @@ class ThisTestCase(TestCase):
         return f"\n===\n{pformat(a)}\n---\n{pformat(b)}\n"
 
 
+class TestLoadPkg(ThisTestCase):
+    """Test utility function.
+
+    NOTE: This function is not intended for general use.
+    NOTE: This function is intended to allow optional, variable packages.
+    """
+
+    def test_returns_expected(self):
+        from rym.alias._aliasresolver import _load_pkg
+
+        assert json == _load_pkg(["json"])
+        assert json == _load_pkg(["fake_name", "json"])
+        assert None is _load_pkg(["fake_name"])
+
+
 class TestAddAliases(ThisTestCase):
     """Test method."""
 
@@ -171,7 +186,14 @@ class TestIdentify(ThisTestCase):
 
 
 class TestResolveAlias(ThisTestCase):
-    """Test function."""
+    """Test function.
+
+    NOTE: Encoding resolution tested in separate test case.
+    """
+
+    def test_raises_if_invalid_input_given(self):
+        with self.assertRaisesRegex(TypeError, "invalid alias"):
+            MOD.resolve_aliases([42])
 
     def test_supports_explicit_aliases(self):
         given = [
@@ -284,9 +306,7 @@ class TestResolveAliasEncoding(ThisTestCase):
     @skipIf(not yaml, "yaml not intalled")
     def test_yaml(self):
         with self.subTest("load aliases from root"):
-            self.assert_loads_aliases_from_root(
-                suffix=".yaml", encode=yaml.safe_dump
-            )
+            self.assert_loads_aliases_from_root(suffix=".yaml", encode=yaml.safe_dump)
 
     # section
     # ----------------------------------

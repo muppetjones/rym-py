@@ -19,14 +19,14 @@ You can also add new keys with mappings:
 >>> example[0]['c']
 'u l8r'
 
-    *Recommended: Just use `lpath.get`*
+**Recommended: Just use `lpath.get`**
 
-    >>> lpath.get(example, '0.a').append('aa')
-    >>> lpath.get(example, '0.a.3')
-    'aa'
-    >>> setattr(lpath.get(example, '1'), 'baz', 42)
-    >>> lpath.get(example, '1.baz')
-    42
+>>> lpath.get(example, '0.a').append('aa')
+>>> lpath.get(example, '0.a.3')
+'aa'
+>>> setattr(lpath.get(example, '1'), 'baz', 42)
+>>> lpath.get(example, '1.baz')
+42
 
 
 """
