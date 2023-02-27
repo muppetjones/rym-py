@@ -27,7 +27,7 @@ jobs:
             - 'rym-alias/**'
   rym-alias-test:
     needs: changes
-    if: ${{ needs.changes.outputs.alias == 'true' }}
+    if: ${{ needs.changes.outputs.alias == 'true' || startsWith(github.event.head_commit.message, 'build') }}
     uses: ./.github/workflows/test-pdm.yaml
     with:
       target: rym-alias
@@ -42,7 +42,7 @@ jobs:
       PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
   rym-lpath-test:
     needs: changes
-    if: ${{ needs.changes.outputs.lpath == 'true' }}
+    if: ${{ needs.changes.outputs.lpath == 'true'  || startsWith(github.event.head_commit.message, 'build') }}
     uses: ./.github/workflows/test-pdm.yaml
     with:
       target: rym-lpath
