@@ -1,6 +1,7 @@
 # local
 *.env*
 .DS_Store
+sandbox/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

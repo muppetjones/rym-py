@@ -1,6 +1,6 @@
 [project]
 name = "rym-alias"
-version = "0.1.0"
+version = "0.1.1"
 description = "Simple aliasing."
 authors = [
     {name = "Stephen Bush", email = "2041619+muppetjones@users.noreply.github.com"},
@@ -18,8 +18,9 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/muppetjones/rym-py/rym-alias"
+"Homepage" = "https://github.com/muppetjones/rym-py/tree/main/rym-alias"
 "Bug Tracker" = "https://github.com/muppetjones/rym-py/issues"
+"Documentation" = "https://muppetjones.github.io/rym-py/rym-alias"
 
 [tool.pdm]
 [tool.pdm.scripts]

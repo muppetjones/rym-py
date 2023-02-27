@@ -1,6 +1,6 @@
 [project]
 name = "rym-lpath"
-version = "0.3.0"
+version = "0.3.1"
 description = "A python library for accessing mappings and objects."
 authors = [
     {name = "Stephen Bush", email = "muppetjones@gmail.com"},
@@ -16,8 +16,9 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/muppetjones/rym-py/rym-lpath"
+"Homepage" = "https://github.com/muppetjones/rym-py/tree/main/rym-lpath"
 "Bug Tracker" = "https://github.com/muppetjones/rym-py/issues"
+"Documentation" = "https://muppetjones.github.io/rym-py/rym-lpath"
 
 [build-system]
 requires = ["hatchling"]
