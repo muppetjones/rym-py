@@ -5,9 +5,6 @@ on: push
 jobs:
   changes:
     runs-on: ubuntu-latest
-    # Required permissions
-    permissions:
-      pull-requests: read
     # Set job outputs to values from filter step
     outputs:
       lpath: ${{ steps.filter.outputs.lpath }}
@@ -17,6 +14,7 @@ jobs:
     - uses: dorny/paths-filter@v2
       id: filter
       with:
+        base: ${{ github.ref }}
         # filters: .github/file-filters.yaml
         filters: |
           lpath:
