@@ -23,13 +23,19 @@ jobs:
             - 'rym-alias/**'
   rym-alias:
     needs: changes
-    if: ${{ needs.changes.outputs.alias == 'true' }}
+    if: ${{ needs.changes.outputs.alias == 'true' || startsWith(github.event.head_commit.message, 'build') }}
     uses: ./.github/workflows/publish-to-pypi.yaml
     with:
       target: rym-alias
+    secrets:
+      TEST_PYPI_API_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
   rym-lpath:
     needs: changes
-    if: ${{ needs.changes.outputs.lpath == 'true' }}
+    if: ${{ needs.changes.outputs.lpath == 'true' || startsWith(github.event.head_commit.message, 'build') }}
     uses: ./.github/workflows/publish-to-pypi.yaml
     with:
       target: rym-lpath
+    secrets:
+      TEST_PYPI_API_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
