@@ -1,0 +1,43 @@
+name:  CD
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    # Required permissions
+    permissions:
+      pull-requests: read
+    # Set job outputs to values from filter step
+    outputs:
+      lpath: ${{ steps.filter.outputs.lpath }}
+      alias: ${{ steps.filter.outputs.alias }}
+    steps:
+    # For pull requests it's not necessary to checkout the code
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        # filters: .github/file-filters.yaml
+        filters: |
+          lpath:
+            - 'rym-lpath/**'
+          alias:
+            - 'rym-alias/**'
+  rym-alias:
+    needs: changes
+    if: ${{ needs.changes.outputs.alias == 'true' }}
+    uses: ./.github/workflows/publish-to-pypi.yaml
+    with:
+      target: rym-alias
+  rym-lpath:
+    needs: changes
+    if: ${{ needs.changes.outputs.lpath == 'true' }}
+    uses: ./.github/workflows/publish-to-pypi.yaml
+    with:
+      target: rym-lpath

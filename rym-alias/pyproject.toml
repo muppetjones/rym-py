@@ -1,5 +1,38 @@
+[project]
+name = "rym-alias"
+version = "0.1.0"
+description = "Simple aliasing."
+authors = [
+    {name = "Stephen Bush", email = "2041619+muppetjones@users.noreply.github.com"},
+]
+dependencies = [
+    "stringcase>=1.2.0",
+]
+requires-python = ">=3.8"
+readme = "README.md"
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/muppetjones/rym-py/rym-alias"
+"Bug Tracker" = "https://github.com/muppetjones/rym-py/issues"
+
 [tool.pdm]
+[tool.pdm.scripts]
+init-hooks = "pre-commit install"
+rm-hooks = "pre-commit uninstall"
+lint = "flake8 rym"
+clean = "find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete"
+test = "pytest"
+
 [tool.pdm.dev-dependencies]
+dev = [
+    "pre-commit>=2.21.0",
+]
 ipy = [
     "ipykernel>=6.16.2",
     "jupyterlab>=3.6.1",
@@ -13,38 +46,22 @@ test = [
     "tomlkit>=0.11.6",
     "tox>=4.4.6",
 ]
-dev = [
-    "pre-commit>=2.21.0",
-]
-
-[tool.pdm.scripts]
-init-hooks = "pre-commit install"
-rm-hooks = "pre-commit uninstall"
-lint = "flake8 rym"
-clean = "find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete"
-test = "pytest"
-
-[project]
-name = "rym-alias"
-version = "0.1.0"
-description = "Simple aliasing."
-authors = [
-    {name = "Stephen Bush", email = "2041619+muppetjones@users.noreply.github.com"},
-]
-dependencies = [
-    "stringcase>=1.2.0",
-]
-requires-python = ">=3.7"
-readme = "README.md"
-license = {text = "MIT"}
 
 [build-system]
-requires = ["pdm-pep517>=1.0"]
-build-backend = "pdm.pep517.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+exclude = ["tests", "notebooks"]
+include = ["rym"]
+
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-ra -vvv --cov=rym"
+addopts = [
+    "-ra -vvv --cov=rym",
+    "--import-mode=importlib",
+]
 testpaths = [
     "tests",
 ]
