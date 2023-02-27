@@ -1,6 +1,6 @@
 # `rym-py`
 
-[![CI](https://github.com/muppetjones/rym-py/actions/workflows/ci.yaml/badge.svg)](https://github.com/muppetjones/rym-py/actions/workflows/ci.yaml)
+[![CI/CD](https://github.com/muppetjones/rym-py/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/muppetjones/rym-py/actions/workflows/ci-cd.yaml)
 
 A collection of python packages to support various, quirky features.
 These tools are intended to reduce reduncancy and complexity but mostly
