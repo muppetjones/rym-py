@@ -6,7 +6,7 @@ import logging
 from datetime import datetime, timezone
 from unittest import TestCase
 
-import rym.alias._coerce as MOD
+import rym.alias as MOD
 
 try:
     from numpy import NaN  # flake8: noqa
