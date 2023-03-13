@@ -4,9 +4,8 @@
 import logging
 from unittest import TestCase, mock
 
-import stringcase as sc
-
 import rym.alias as MOD
+import stringcase as sc
 from rym.alias import variation
 
 LOGGER = logging.getLogger(__name__)
@@ -29,6 +28,7 @@ class TestInit(ThisTestCase):
                 *["fooBar", "FOO_bar"],  # given
                 *["FOOBAR", "FOO_BAR"],  # upper
                 *["foobar", "foo_bar"],  # lower
+                *["Foobar", "Foo_bar"],  # capitalize
             ]
         )
         subject = MOD.Alias(**given)

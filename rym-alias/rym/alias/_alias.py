@@ -65,6 +65,7 @@ def _default_transforms() -> Iterable[Callable[[str], str]]:
     return [
         variation.upper,
         variation.lower,
+        variation.capitalize,
     ]
 
 
@@ -84,9 +85,9 @@ class Alias:
             Default: Upper and lower case of each alias.
     """
 
-    identity: str
-    aliases: Iterable[str]
-    transforms: Iterable[Callable[[str], str]] = dcs.field(
+    identity: Hashable
+    aliases: Iterable[Hashable]
+    transforms: Iterable[Callable[[Hashable], Hashable]] = dcs.field(
         default_factory=_default_transforms
     )
     strict: bool = False
