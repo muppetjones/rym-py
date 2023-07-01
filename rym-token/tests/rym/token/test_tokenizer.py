@@ -2,7 +2,7 @@
 """Test."""
 
 import logging
-from textwrap import dedent
+from datetime import date, datetime, time, timedelta, timezone
 from unittest import TestCase
 
 import rym.token.tokenizer as MOD
@@ -103,6 +103,67 @@ class TestTokenize(ThisTestCase):
             Token(type="INTEGER", value=1, line=2, column=42 + buf),
             Token(type="INTEGER", value=42, line=2, column=45 + buf),
             Token(type="INTEGER", value=1005, line=2, column=53 + buf),
+        ]
+        result = MOD.tokenize(text, spec)
+        found = list(result)
+        self.assertEqual(expected, found)
+
+    def test_matches_dates(self) -> None:
+        # NOTE: Test all dates together to ensure each can be detected.
+        #   0         1         2         3         4         5         6
+        #   0123456789012345678901234567890123456789012345678901234567890123456789
+        text = """
+            Dates are often expressed as timestamps: 2008-07-25T02:45:00.000000-05:00
+            But there are quite a few variations:
+                2008-07-25T02:45:00.000000-05:00
+                2008-07-25T02:45:00.000
+                2008-07-25 02:45
+                2008-07-25T02:45:00.000000Z
+            But you can also only specify the date: 1985-10-26, 1955.11.05, 2015/10/21
+            Or just the time: 21:00 in 24-hour or 9:00 PM in 12-hour formats.
+            Time can also include a timezone: 04:20Z, 16:20-06:00
+        """
+        spec = [MOD.timestamp(), MOD.date(), MOD.time()]  # ORDER MATTERS!
+        buf = 12
+        arg = (2008, 7, 25, 2, 45)
+        expected = [
+            Token(
+                type="TIMESTAMP",
+                value=datetime(*arg, tzinfo=timezone(timedelta(hours=-5))),
+                line=1,
+                column=41 + buf,
+            ),
+            Token(
+                type="TIMESTAMP",
+                value=datetime(*arg, tzinfo=timezone(timedelta(hours=-5))),
+                line=3,
+                column=4 + buf,
+            ),
+            Token(type="TIMESTAMP", value=datetime(*arg), line=4, column=4 + buf),
+            Token(type="TIMESTAMP", value=datetime(*arg), line=5, column=4 + buf),
+            Token(
+                type="TIMESTAMP",
+                value=datetime(*arg, tzinfo=timezone.utc),
+                line=6,
+                column=4 + buf,
+            ),
+            Token(type="DATE", value=date(1985, 10, 26), line=7, column=40 + buf),
+            Token(type="DATE", value=date(1955, 11, 5), line=7, column=52 + buf),
+            Token(type="DATE", value=date(2015, 10, 21), line=7, column=64 + buf),
+            Token(type="TIME", value=time(21, 0, 0), line=8, column=18 + buf),
+            Token(type="TIME", value=time(21, 0, 0), line=8, column=38 + buf),
+            Token(
+                type="TIME",
+                value=time(4, 20, 0, tzinfo=timezone.utc),
+                line=9,
+                column=34 + buf,
+            ),
+            Token(
+                type="TIME",
+                value=time(16, 20, 0, tzinfo=timezone(timedelta(hours=-6))),
+                line=9,
+                column=42 + buf,
+            ),
         ]
         result = MOD.tokenize(text, spec)
         found = list(result)

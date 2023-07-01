@@ -5,7 +5,9 @@ See also:
     https://docs.python.org/3/library/re.html?highlight=re#writing-a-tokenizer
 """
 
+import datetime as dt
 import logging
+import re
 from typing import Callable, Iterable, Tuple
 
 from .regex import combine_regex
@@ -59,12 +61,67 @@ def tokenize(
 # specs
 # ======================================================================
 
+# datetime
+# ----------------------------------
+_DATE = r"(?:\d\d)?\d{2}[\-/\.]\d{2}[\-/\.]\d{2}"
+_TS_SEP = r"[T\s]"
+_TIME = r"\d?\d:\d{2}(?::\d{2}(?:\.\d+)?)?(?:\s?[ZAPap][Mm]?)?"
+_TZ = r"(?:Z|[\+\-]\d{2}:\d{2})"
+_DATE_SEP = re.compile(r"[\./]")
+_TIME_SEP = re.compile(r"[:\sa-z]")
 
-def _safe_float(x: str) -> int:
+
+def _safe_date(value: str, *args) -> dt.date:
+    value = _DATE_SEP.sub("-", value)
+    return dt.date.fromisoformat(value)
+
+
+def _safe_time(value: str, *args) -> dt.time:
+    value = value.lower()
+    if "z" == value[-1]:
+        # Z support added in 3.11
+        value = value[:-1] + "+00:00"
+    elif "m" == value[-1]:
+        h, m, *_ = _TIME_SEP.split(value)
+        adj = 0 if "a" == value[-2] else 12
+        h = int(h) + adj
+        value = "{:0d}:{}".format(h, m)
+    return dt.time.fromisoformat(value)
+
+
+def _safe_timestamp(value: str, *args) -> dt.datetime:
+    if "z" == value[-1].lower():
+        # Z support added in 3.11
+        value = value[:-1] + "+00:00"
+    return dt.datetime.fromisoformat(value)
+
+
+@cache
+def timestamp() -> TokenSpec:
+    return TokenSpec(
+        "TIMESTAMP",
+        "%s%s%s(?:%s)?" % (_DATE, _TS_SEP, _TIME, _TZ),
+        _safe_timestamp,
+    )
+
+
+def date() -> TokenSpec:
+    return TokenSpec("DATE", _DATE, _safe_date)
+
+
+def time() -> TokenSpec:
+    return TokenSpec("TIME", "%s(?:%s)?" % (_TIME, _TZ), _safe_time)
+
+
+# numeric
+# ----------------------------------
+
+
+def _safe_float(x: str, *args) -> int:
     return float(x.replace(",", ""))
 
 
-def _safe_int(x: str) -> int:
+def _safe_int(x: str, *args) -> int:
     return int(x.replace(",", ""))
 
 
@@ -81,6 +138,10 @@ def integer() -> TokenSpec:
         r"(?<![\.\de])(?<!e-)\-?\d(?:[\,_]\d)?\d*(?!\.\d)(?![\d_e])",
         _safe_int,
     )
+
+
+# text
+# ----------------------------------
 
 
 @cache
