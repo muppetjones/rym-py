@@ -4,8 +4,9 @@
 import logging
 from unittest import TestCase, mock
 
-import rym.alias as MOD
 import stringcase as sc
+
+import rym.alias as MOD
 from rym.alias import variation
 
 LOGGER = logging.getLogger(__name__)

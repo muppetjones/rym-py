@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Test coercion module."""
+"""Test coercion functionality.
+
+NOTE: Tests the interface of rym.alias.coerce.
+"""
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import date, datetime, time, timezone
 from unittest import TestCase
 
 import rym.alias as MOD
@@ -24,6 +27,7 @@ class TestBoolean(TestCase):
     """Test feature."""
 
     def test_returns_value_from_explicit_named_type(self):
+        # NOTE: Behaves like standard bool.
         tests = [
             # (expected, given)
             ((bool, True), {"value": 1, "converter": "boolean"}),
@@ -36,6 +40,7 @@ class TestBoolean(TestCase):
                 self.assertEqual(expected, found)
 
     def test_returns_value_from_explicit_type(self):
+        # NOTE: Behaves like standard bool.
         tests = [
             # (expected, given)
             ((bool, True), {"value": 1, "converter": bool}),
@@ -255,6 +260,21 @@ class TestString(ThisTestCase):
             ((str, "<class Foo>"), {"value": Foo, "converter": "str"}),
             ((str, "Foo()"), {"value": Foo(), "converter": "str"}),
             ((str, now.isoformat()), {"value": now, "converter": str}),
+        ]
+        for expected, kwargs in tests:
+            with self.subTest(kwargs):
+                value = MOD.coerce(**kwargs)
+                found = (type(value), value)
+                self.assertEqual(expected, found)
+
+    def test_returns_isoformat_given_datetime_objects(self):
+
+        now = datetime.now(timezone.utc)
+        tests = [
+            # (expected, given)
+            ((str, now.isoformat()), {"value": now, "converter": str}),
+            ((str, now.date.isoformat()), {"value": now.date, "converter": str}),
+            ((str, now.time.isoformat()), {"value": now.time, "converter": str}),
         ]
         for expected, kwargs in tests:
             with self.subTest(kwargs):

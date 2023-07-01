@@ -8,6 +8,14 @@ import logging
 LOGGER = logging.getLogger(__name__)
 
 
+def capitalize(value: str) -> str:
+    """Capitalize.
+
+    NOTE: Compatible signature for alias transforms.
+    """
+    return value.capitalize()
+
+
 def deesser(value: str) -> str:
     """Remove any trailing 's' characters.
 
