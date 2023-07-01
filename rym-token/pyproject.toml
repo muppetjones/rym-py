@@ -1,0 +1,99 @@
+[project]
+name = "rym-token"
+version = "0.1/1"
+description = "A python library for tokenizing text."
+authors = [
+    {name = "Stephen Bush", email = "muppetjones@gmail.com"},
+]
+dependencies = []
+requires-python = ">=3.8"
+readme = "README.md"
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/muppetjones/rym-py/tree/main/rym-token"
+"Bug Tracker" = "https://github.com/muppetjones/rym-py/issues"
+"Documentation" = "https://muppetjones.github.io/rym-py/rym-token"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+exclude = ["tests", "notebooks"]
+include = ["rym"]
+
+
+[tool.pdm]
+[tool.pdm.scripts]
+init-hooks = "pre-commit install"
+rm-hooks = "pre-commit uninstall"
+lint = "flake8 rym"
+clean = "find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete"
+test = "pytest"
+
+[tool.pdm.dev-dependencies]
+ipy = [
+    "ipykernel>=6.16.2",
+    "jupyterlab>=3.6.1",
+]
+dev = [
+    "pre-commit>=3.0.4",
+]
+test = [
+    "pytest>=7.2.1",
+    "pytest-cov>=4.0.0",
+    "coverage>=7.2.0",
+    "tox>=4.4.6",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=6.2",
+    "coverage[toml]>=7.1.0",
+    "pytest-cov>=4.0.0",
+]
+lint = [
+    "flake8>=3.8",
+    "black>=20.8b1",
+]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = [
+    "-ra -vvv --cov=rym",
+    "--import-mode=importlib",
+]
+testpaths = [
+    "tests",
+]
+
+[tool.black]
+line-length = 83
+target-version = ["py38", "py39", "py310"]
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+atomic = true
+line_length = 83
+float_to_top = true
+skip_glob = "**/__init__.py"
