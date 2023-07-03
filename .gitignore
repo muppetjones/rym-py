@@ -2,6 +2,7 @@
 *.env*
 .DS_Store
 sandbox/
+Untitled*ipynb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
