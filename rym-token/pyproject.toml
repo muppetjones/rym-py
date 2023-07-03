@@ -1,6 +1,6 @@
 [project]
 name = "rym-token"
-version = "0.1/1"
+version = "0.1.1"
 description = "A python library for tokenizing text."
 authors = [
     {name = "Stephen Bush", email = "muppetjones@gmail.com"},
