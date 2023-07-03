@@ -14,6 +14,7 @@ class TokenSpec(NamedTuple):
     type: str
     pattern: str
     handle: Callable[..., Any] = None
+    subtype: Callable[[str], str] = None
 
 
 @dcs.dataclass

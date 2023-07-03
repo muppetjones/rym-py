@@ -2,10 +2,11 @@
 """Test."""
 
 import logging
-from datetime import date, datetime, time, timedelta, timezone
 from unittest import TestCase
 
 import rym.token.tokenizer as MOD
+import rym.token.tokenspec as specs
+import rym.token.tokenspecgroup as groups
 from rym.token.structures import Token
 
 LOGGER = logging.getLogger(__name__)
@@ -68,6 +69,7 @@ class TestTokenize(ThisTestCase):
         text = """
             "Well", he said, "I hadn't really thought about it".
         """
+        spec = [specs.quote(), specs.punctuation(), specs.word()]
         expected = [
             Token(type="QUOTE", value='"Well"', line=1, column=12),
             Token(type="PUNCTUATION", value=",", line=1, column=18),
@@ -82,88 +84,110 @@ class TestTokenize(ThisTestCase):
             ),
             Token(type="PUNCTUATION", value=".", line=1, column=63),
         ]
-        result = MOD.tokenize(text)
+        result = MOD.tokenize(text, spec)
         found = list(result)
         self.assertEqual(expected, found)
 
-    def test_matches_numbers(self) -> None:
+    def test_given_subtype_match(self) -> None:
+        # NOTE: Test all dates together to ensure each can be detected.
         #   0         1         2         3         4         5         6
         #   0123456789012345678901234567890123456789012345678901234567890123456789
         text = """
-            Some numbers are floating point, such as 2_000.0, 3.14, and 1e-3,
-            and others that are integers, such as -4, 1, 42, and 1,005.
+            Some words are qualifiers. Between coding sessions, try it out, and
+            before you know it, you'll have it done.
+            After all, practice makes perfect.
         """
-        spec = [MOD.integer(), MOD.number()]
-        buf = 12
+        subtypes = (
+            ("qualifier", ("before", "after", "since", "between")),
+            ("quantifier", ("some", "all", "any")),
+        )
+        spec = [MOD.word(subtypes)]  # ORDER MATTERS!
         expected = [
-            Token(type="NUMBER", value=2000.0, line=1, column=41 + buf),
-            Token(type="NUMBER", value=3.14, line=1, column=50 + buf),
-            Token(type="NUMBER", value=0.001, line=1, column=60 + buf),
-            Token(type="INTEGER", value=-4, line=2, column=38 + buf),
-            Token(type="INTEGER", value=1, line=2, column=42 + buf),
-            Token(type="INTEGER", value=42, line=2, column=45 + buf),
-            Token(type="INTEGER", value=1005, line=2, column=53 + buf),
+            Token(type="QUANTIFIER", value="Some", line=1, column=12),
+            Token(type="WORD", value="words", line=1, column=17),
+            Token(type="WORD", value="are", line=1, column=23),
+            Token(type="WORD", value="qualifiers", line=1, column=27),
+            Token(type="QUALIFIER", value="Between", line=1, column=39),
+            Token(type="WORD", value="coding", line=1, column=47),
+            Token(type="WORD", value="sessions", line=1, column=54),
+            Token(type="WORD", value="try", line=1, column=64),
+            Token(type="WORD", value="it", line=1, column=68),
+            Token(type="WORD", value="out", line=1, column=71),
+            Token(type="WORD", value="and", line=1, column=76),
+            Token(type="QUALIFIER", value="before", line=2, column=12),
+            Token(type="WORD", value="you", line=2, column=19),
+            Token(type="WORD", value="know", line=2, column=23),
+            Token(type="WORD", value="it", line=2, column=28),
+            Token(type="WORD", value="you'll", line=2, column=32),
+            Token(type="WORD", value="have", line=2, column=39),
+            Token(type="WORD", value="it", line=2, column=44),
+            Token(type="WORD", value="done", line=2, column=47),
+            Token(type="QUALIFIER", value="After", line=3, column=12),
+            Token(type="QUANTIFIER", value="all", line=3, column=18),
+            Token(type="WORD", value="practice", line=3, column=23),
+            Token(type="WORD", value="makes", line=3, column=32),
+            Token(type="WORD", value="perfect", line=3, column=38),
         ]
         result = MOD.tokenize(text, spec)
         found = list(result)
         self.assertEqual(expected, found)
 
-    def test_matches_dates(self) -> None:
+    def test_relative_date_and_grammar(self) -> None:
         # NOTE: Test all dates together to ensure each can be detected.
         #   0         1         2         3         4         5         6
         #   0123456789012345678901234567890123456789012345678901234567890123456789
         text = """
-            Dates are often expressed as timestamps: 2008-07-25T02:45:00.000000-05:00
-            But there are quite a few variations:
-                2008-07-25T02:45:00.000000-05:00
-                2008-07-25T02:45:00.000
-                2008-07-25 02:45
-                2008-07-25T02:45:00.000000Z
-            But you can also only specify the date: 1985-10-26, 1955.11.05, 2015/10/21
-            Or just the time: 21:00 in 24-hour or 9:00 PM in 12-hour formats.
-            Time can also include a timezone: 04:20Z, 16:20-06:00
+            Been around since April of last year, or was it last March?
+            Worked on that last summer
+            Happenend between Jan and Feb
+            Completed in Q2
+            We have until the end of September
+            It'll be done by Thu of this week
         """
-        spec = [MOD.timestamp(), MOD.date(), MOD.time()]  # ORDER MATTERS!
-        buf = 12
-        arg = (2008, 7, 25, 2, 45)
+        spec = [*groups.temporal(), *groups.grammar()]
         expected = [
-            Token(
-                type="TIMESTAMP",
-                value=datetime(*arg, tzinfo=timezone(timedelta(hours=-5))),
-                line=1,
-                column=41 + buf,
-            ),
-            Token(
-                type="TIMESTAMP",
-                value=datetime(*arg, tzinfo=timezone(timedelta(hours=-5))),
-                line=3,
-                column=4 + buf,
-            ),
-            Token(type="TIMESTAMP", value=datetime(*arg), line=4, column=4 + buf),
-            Token(type="TIMESTAMP", value=datetime(*arg), line=5, column=4 + buf),
-            Token(
-                type="TIMESTAMP",
-                value=datetime(*arg, tzinfo=timezone.utc),
-                line=6,
-                column=4 + buf,
-            ),
-            Token(type="DATE", value=date(1985, 10, 26), line=7, column=40 + buf),
-            Token(type="DATE", value=date(1955, 11, 5), line=7, column=52 + buf),
-            Token(type="DATE", value=date(2015, 10, 21), line=7, column=64 + buf),
-            Token(type="TIME", value=time(21, 0, 0), line=8, column=18 + buf),
-            Token(type="TIME", value=time(21, 0, 0), line=8, column=38 + buf),
-            Token(
-                type="TIME",
-                value=time(4, 20, 0, tzinfo=timezone.utc),
-                line=9,
-                column=34 + buf,
-            ),
-            Token(
-                type="TIME",
-                value=time(16, 20, 0, tzinfo=timezone(timedelta(hours=-6))),
-                line=9,
-                column=42 + buf,
-            ),
+            Token(type="WORD", value="Been", line=1, column=12),
+            Token(type="WORD", value="around", line=1, column=17),
+            Token(type="CONJUNCTION", value="since", line=1, column=24),
+            Token(type="MONTH", value="April", line=1, column=30),
+            Token(type="PREPOSITION", value="of", line=1, column=36),
+            Token(type="WORD", value="last", line=1, column=39),
+            Token(type="RELDATE", value="year", line=1, column=44),
+            Token(type="PUNCTUATION", value=",", line=1, column=48),
+            Token(type="CONJUNCTION", value="or", line=1, column=50),
+            Token(type="WORD", value="was", line=1, column=53),
+            Token(type="WORD", value="it", line=1, column=57),
+            Token(type="WORD", value="last", line=1, column=60),
+            Token(type="MONTH", value="March", line=1, column=65),
+            Token(type="PUNCTUATION", value="?", line=1, column=70),
+            Token(type="WORD", value="Worked", line=2, column=12),
+            Token(type="PREPOSITION", value="on", line=2, column=19),
+            Token(type="WORD", value="that", line=2, column=22),
+            Token(type="WORD", value="last", line=2, column=27),
+            Token(type="RELDATE", value="summer", line=2, column=32),
+            Token(type="WORD", value="Happenend", line=3, column=12),
+            Token(type="WORD", value="between", line=3, column=22),
+            Token(type="MONTH", value="Jan", line=3, column=30),
+            Token(type="CONJUNCTION", value="and", line=3, column=34),
+            Token(type="MONTH", value="Feb", line=3, column=38),
+            Token(type="WORD", value="Completed", line=4, column=12),
+            Token(type="PREPOSITION", value="in", line=4, column=22),
+            Token(type="RELDATE", value="Q2", line=4, column=25),
+            Token(type="WORD", value="We", line=5, column=12),
+            Token(type="WORD", value="have", line=5, column=15),
+            Token(type="WORD", value="until", line=5, column=20),
+            Token(type="ARTICLE", value="the", line=5, column=26),
+            Token(type="WORD", value="end", line=5, column=30),
+            Token(type="PREPOSITION", value="of", line=5, column=34),
+            Token(type="MONTH", value="September", line=5, column=37),
+            Token(type="WORD", value="It'll", line=6, column=12),
+            Token(type="WORD", value="be", line=6, column=18),
+            Token(type="WORD", value="done", line=6, column=21),
+            Token(type="PREPOSITION", value="by", line=6, column=26),
+            Token(type="DAY", value="Thu", line=6, column=29),
+            Token(type="PREPOSITION", value="of", line=6, column=33),
+            Token(type="WORD", value="this", line=6, column=36),
+            Token(type="RELDATE", value="week", line=6, column=41),
         ]
         result = MOD.tokenize(text, spec)
         found = list(result)
