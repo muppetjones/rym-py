@@ -27,6 +27,11 @@ def grammar_word_subtypes() -> Tuple[TokenSubtypeSpec, ...]:
 
 
 def grammar() -> Tuple[TokenSpec, ...]:
+    """Return punctuation and grammar specs.
+
+    NOTE: Uses 'word' spec with minimal subtype matching.
+    NOTE: Intended for example usage. Grammar subtype is not exhaustive.
+    """
     return (
         tokenspec.punctuation(),
         tokenspec.word(grammar_word_subtypes()),
@@ -34,6 +39,7 @@ def grammar() -> Tuple[TokenSpec, ...]:
 
 
 def numeric() -> Tuple[TokenSpec, ...]:
+    """Return number and integer subtypes."""
     return (
         tokenspec.integer(),
         tokenspec.number(),
@@ -41,6 +47,17 @@ def numeric() -> Tuple[TokenSpec, ...]:
 
 
 def search() -> Tuple[TokenSpec, ...]:
+    """Return token specs useful for parsing search strings.
+
+    Includes:
+        - search terms
+        - uuid string
+        - temporal specs
+        - numeric specs
+        - alphanumeric with qualifier and quantifier subtypes
+
+    TODO: Add logical operators.
+    """
     return (
         tokenspec.search_term(),
         tokenspec.uuid_string(),
@@ -56,6 +73,7 @@ def search() -> Tuple[TokenSpec, ...]:
 
 
 def temporal() -> Tuple[TokenSpec, ...]:
+    """Return specs for date-related tokens."""
     return (
         tokenspec.timestamp(),  # ORDER MATTERS!
         tokenspec.date(),

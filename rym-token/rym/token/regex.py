@@ -5,6 +5,7 @@
 
 import logging
 import re
+from collections import abc
 from functools import singledispatch
 from re import Pattern
 from typing import Any, Iterable, Tuple, Union
@@ -47,7 +48,7 @@ def combine_regex(sources: Iterable[Union[str, Pattern, TokenSpec]]) -> Pattern:
         TypeError for invalid source.
     )
     """
-    patterns = tuple(_get_pattern(x, i) for i, x in enumerate(sources))
+    patterns = tuple(_yield_patterns(sources, i=None))
     return combine_regex_memoized(patterns)
 
 
@@ -65,7 +66,7 @@ def combine_regex_memoized(specs: Tuple[Tuple[str, str], ...]) -> Pattern:
 
 
 @singledispatch
-def _get_pattern(value: Any, i: int) -> Tuple[str, str]:
+def _yield_patterns(value: Any, i: int) -> Tuple[str, str]:
     """Return (name, pattern) for every source.
 
     Arguments:
@@ -79,19 +80,26 @@ def _get_pattern(value: Any, i: int) -> Tuple[str, str]:
     raise TypeError(f"{value}; expected string, re.Pattern, or TokenSpec")
 
 
-@_get_pattern.register(str)
+@_yield_patterns.register(str)
 def _(value: str, i: int) -> Tuple[str, str]:
-    return f"P{i}", value
+    yield f"P{i or 0}", value
 
 
-@_get_pattern.register(Pattern)
+@_yield_patterns.register(Pattern)
 def _(value: Pattern, i: int) -> Tuple[str, str]:
-    return f"P{i}", value.pattern
+    yield f"P{i or 0}", value.pattern
 
 
-@_get_pattern.register(TokenSpec)
+@_yield_patterns.register(TokenSpec)
 def _(value: TokenSpec, i: int) -> Tuple[str, str]:
-    return value.type, value.pattern
+    yield value.type, value.pattern
+
+
+@_yield_patterns.register(abc.Iterable)
+def _(value: Iterable, i: int) -> Tuple[str, str]:
+    prefix = f"{i}_" if i else ""
+    for j, x in enumerate(value):
+        yield from _yield_patterns(x, f"{prefix}{j}")
 
 
 # __END__

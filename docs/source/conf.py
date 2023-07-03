@@ -17,6 +17,8 @@ def _add_namespaces_to_sys_path():
     parts = Path(__file__).parts
     index = parts.index("rym-py") + 1
     root = Path(*parts[:index]).resolve()
+    if Path(root, "rym-py").is_dir():
+        root = Path(root, "rym-py")
     paths = [str(Path(root, x)) for x in ("rym-lpath", "rym-alias", "rym-token")]
     sys.path.extend(paths)
 
@@ -44,6 +46,9 @@ extensions = [
 templates_path = ["_templates"]
 exclude_patterns = ["**/tests"]
 
+# Autoapi settings
+autoapi_python_use_implicit_namespaces = True
+
 # Napoleon settings
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
@@ -65,7 +70,7 @@ napoleon_attr_annotations = True
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "sphinx_rtd_theme"
-html_static_path = ["_static"]
+html_static_path = []
 html_context = {
     "display_github": True,  # Integrate GitHub
     "github_user": "muppetjones",  # Username

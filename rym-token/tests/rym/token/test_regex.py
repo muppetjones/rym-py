@@ -51,5 +51,23 @@ class TestCombineRegex(ThisTestCase):
         assert a is c
         assert a is not d
 
+    def test_supports_nested_structures(self):
+        given = [r"o", [r"e"]]
+        line = "The quick brown fox jumped over the fence"
+        pattern = MOD.combine_regex(given)
+        expected = [
+            ("", "e"),
+            ("o", ""),
+            ("o", ""),
+            ("", "e"),
+            ("o", ""),
+            ("", "e"),
+            ("", "e"),
+            ("", "e"),
+            ("", "e"),
+        ]
+        found = pattern.findall(line)
+        self.assertEqual(expected, found)
+
 
 # __END__
