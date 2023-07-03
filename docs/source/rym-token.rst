@@ -1,4 +1,4 @@
-`rym-tokin`
+`rym-token`
 ==================================
 
 The `token` module provides string tokenization.

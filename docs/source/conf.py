@@ -19,7 +19,7 @@ def _add_namespaces_to_sys_path():
     root = Path(*parts[:index]).resolve()
     paths = [str(Path(root, x)) for x in ("rym-lpath", "rym-alias", "rym-token")]
     sys.path.extend(paths)
-    LOGGER.critical(paths)
+    LOGGER.critical({x: x.exists() for x in paths})
 
 
 _add_namespaces_to_sys_path()
@@ -44,6 +44,9 @@ extensions = [
 
 templates_path = ["_templates"]
 exclude_patterns = ["**/tests"]
+
+# Autoapi settings
+autoapi_python_use_implicit_namespaces = True
 
 # Napoleon settings
 napoleon_google_docstring = True
