@@ -21,8 +21,6 @@ def _add_namespaces_to_sys_path():
         root = Path(root, "rym-py")
     paths = [str(Path(root, x)) for x in ("rym-lpath", "rym-alias", "rym-token")]
     sys.path.extend(paths)
-    LOGGER.critical([root.is_dir(), list(root.iterdir())])
-    LOGGER.critical({x: Path(x).exists() for x in paths})
 
 
 _add_namespaces_to_sys_path()

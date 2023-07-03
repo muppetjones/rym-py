@@ -32,11 +32,12 @@ def build_subtype_assignment(
     """Return a callable to assign subtype.
 
     Arguments:
-        subtype: Mapping used to assign token subtype
+        subtype: One or more ("type", ("subtype", ...)) definitions
+    Returns:
+        A callable that takes a value and type string and returns the
+        updated type assignment.
     """
-    lookup = {
-        str(name).lower(): k.upper() for k, names in subtypes for name in names
-    }
+    lookup = {str(name).lower(): k.upper() for k, names in subtypes for name in names}
 
     def assign_subtype(value: str, type_: str) -> str:
         return lookup.get(str(value).lower(), type_)
@@ -85,6 +86,7 @@ def _safe_timestamp(value: str, *args) -> dt.datetime:
 
 @cache
 def timestamp() -> TokenSpec:
+    """Return a spec for ISO-8601 timestamps."""
     return TokenSpec(
         "TIMESTAMP",
         "%s%s%s(?:%s)?" % (_DATE, _TS_SEP, _TIME, _TZ),
@@ -94,21 +96,24 @@ def timestamp() -> TokenSpec:
 
 @cache
 def date() -> TokenSpec:
+    """Return a spec for ISO-8601 dates, e.g., 2023-10-30."""
     return TokenSpec("DATE", _DATE, _safe_date)
 
 
 @cache
 def time() -> TokenSpec:
+    """Return a spec for ISO-8601 time strings, e.g., 24:00.000Z."""
     return TokenSpec("TIME", "%s(?:%s)?" % (_TIME, _TZ), _safe_time)
 
 
 @cache
 def reldate() -> TokenSpec:
+    """Return a spec for relative date words, e.g., 'tomorrow'."""
     names = "|".join(
         r"[%s%s]%s" % (x[0].lower(), x[0].upper(), x[1:])
         for x in itertools.chain(
-            ("day", "yesterday", "today", "tomorrow"),
-            ("week", "weekend", "weekday"),
+            ("yesterday", "today", "tomorrow", "day"),
+            ("weekend", "weekday", "week"),
             ("month", "year"),
             ("winter", "spring", "summer", "fall"),
             ("Q[1-4]",),
@@ -120,7 +125,7 @@ def reldate() -> TokenSpec:
 
 @cache
 def month() -> str:
-    """Return regex pattern match for months."""
+    """Return a spec for month names and abbreviations. Title case only."""
     names = "|".join(
         itertools.chain.from_iterable(
             zip(calendar.month_name[1:], calendar.month_abbr[1:])
@@ -132,11 +137,9 @@ def month() -> str:
 
 @cache
 def day() -> str:
-    """Return regex pattern match for months."""
+    """Return a spec for day names and abbreviations. Title case only."""
     names = "|".join(
-        itertools.chain.from_iterable(
-            zip(calendar.day_name[1:], calendar.day_abbr[1:])
-        )
+        itertools.chain.from_iterable(zip(calendar.day_name[1:], calendar.day_abbr[1:]))
     )
     pattern = r"(?<=\b)(?:%s)(?=\b)" % (names,)
     return TokenSpec("DAY", pattern)
@@ -156,11 +159,13 @@ def _safe_int(x: str, *args) -> int:
 
 @cache
 def number() -> TokenSpec:
+    """Return a spec for floating point numbers."""
     return TokenSpec("NUMBER", r"-?\d[\d_]*[e\.]-?\d+", _safe_float)
 
 
 @cache
 def integer() -> TokenSpec:
+    """Return a spec for integers."""
     return TokenSpec(
         "INTEGER",
         r"(?<![\.\d\w])(?<!e-)\-?\d(?:[\,_]\d)?\d*(?!\.\d)(?![\d_e])\b",
@@ -176,6 +181,7 @@ def integer() -> TokenSpec:
 def alphanum(
     subtype: Optional[Iterable[Tuple[str, Tuple[str, ...]]]] = None
 ) -> TokenSpec:
+    """Return a spec for alphanumeric words. Includes hyphens."""
     if subtype:
         subtype = build_subtype_assignment(subtype)
     return TokenSpec(
@@ -188,21 +194,25 @@ def alphanum(
 
 @cache
 def newline() -> TokenSpec:
+    """Return a spec for newlines."""
     return TokenSpec("NEWLINE", r"\r?\n", None)
 
 
 @cache
 def punctuation() -> TokenSpec:
+    """Return a spec for punctuation, e.g., non-word, non-whitespace."""
     return TokenSpec("PUNCTUATION", r"[^\w\s]+", None)
 
 
 @cache
 def quote() -> TokenSpec:
+    """Return a spec for returning quoted strings."""
     return TokenSpec("QUOTE", r"\"[^\"]*\"")
 
 
 @cache
 def search_term() -> TokenSpec:
+    """Return a spec for search terms in the format 'key=val' or 'key:val'."""
     return TokenSpec(
         "TERM",
         r"(?P<term_key>[\w\-]+)(?P<term_op>[:=><]+)(?P<term_value>[\w\-\.]+\b)(?![:])",
@@ -211,6 +221,7 @@ def search_term() -> TokenSpec:
 
 @cache
 def uuid_string() -> TokenSpec:
+    """Return a spec for UUID v4."""
     return TokenSpec(
         "UUID",
         r"[\da-fA-F]{8}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12}",
@@ -218,9 +229,11 @@ def uuid_string() -> TokenSpec:
 
 
 @cache
-def word(
-    subtype: Optional[Iterable[Tuple[str, Tuple[str, ...]]]] = None
-) -> TokenSpec:
+def word(subtype: Optional[Iterable[Tuple[str, Tuple[str, ...]]]] = None) -> TokenSpec:
+    """Return a spec for words.
+
+    NOTE: Matches any consecutive letters.
+    """
     if subtype:
         subtype = build_subtype_assignment(subtype)
     return TokenSpec(

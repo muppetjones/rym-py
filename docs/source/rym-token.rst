@@ -7,7 +7,7 @@ The `token` module provides string tokenization.
 Usage
 ----------------------------------
 
-.. automodule:: rym.token.tokenize
+.. automodule:: rym.token.tokenizer
 
 API
 ----------------------------------
