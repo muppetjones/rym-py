@@ -14,6 +14,7 @@ multiple different packages or package versions.
 
    rym-alias
    rym-lpath
+   rym-token
 
 
 Indices and tables
