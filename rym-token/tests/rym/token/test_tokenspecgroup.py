@@ -115,7 +115,6 @@ class TestTemporal(ThisTestCase):
             Time can also include a timezone: 04:20Z, 16:20-05:00
         """
         spec = MOD.temporal()
-        LOGGER.critical(spec)
         est = {"tzinfo": timezone(timedelta(hours=-5))}
         utc = {"tzinfo": timezone.utc}
         TS = "TIMESTAMP"
@@ -155,7 +154,6 @@ class TestTemporal(ThisTestCase):
             We have until the end of September
         """
         spec = MOD.temporal()
-        LOGGER.critical(spec)
         expected = [
             Token(type="MONTH", value="April", line=1, column=30),
             Token(type="RELDATE", value="year", line=1, column=44),

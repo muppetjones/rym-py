@@ -114,7 +114,6 @@ def reldate() -> TokenSpec:
             ("Q[1-4]",),
         )
     )
-    LOGGER.critical(names)
     pattern = r"(?<=\b)(?:%s)(?=\b)" % (names,)
     return TokenSpec("RELDATE", pattern)
 
