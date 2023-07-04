@@ -1,6 +1,7 @@
 [project]
 name = "rym-token"
-version = "0.1.2"
+dynamic = ["version"]
+# version = "0.1.2"
 description = "A python library for tokenizing text."
 authors = [
     {name = "Stephen Bush", email = "muppetjones@gmail.com"},
@@ -21,12 +22,17 @@ classifiers = [
 "Documentation" = "https://muppetjones.github.io/rym-py/rym-token"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+fall-back = "0.1.2"
 
 [tool.hatch.build]
 exclude = ["tests", "notebooks"]
 include = ["rym"]
+hooks.vcs.version-file = "rym/token/_version.py"
 
 
 [tool.pdm]
