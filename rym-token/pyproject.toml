@@ -1,7 +1,6 @@
 [project]
 name = "rym-token"
 dynamic = ["version"]
-# version = "0.1.2"
 description = "A python library for tokenizing text."
 authors = [
     {name = "Stephen Bush", email = "muppetjones@gmail.com"},
@@ -27,8 +26,6 @@ build-backend = "hatchling.build"
 
 [tool.hatch.version]
 source = "vcs"
-fallback-version = "0.1.2"
-tag-pattern = "rym-token-(?P<version>.+)"
 
 [tool.hatch.build]
 exclude = ["tests", "notebooks"]
