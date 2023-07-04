@@ -1,6 +1,6 @@
 [project]
 name = "rym-token"
-dynamic = ["version"]
+version = "0.1.2"
 description = "A python library for tokenizing text."
 authors = [
     {name = "Stephen Bush", email = "muppetjones@gmail.com"},
@@ -21,19 +21,20 @@ classifiers = [
 "Documentation" = "https://muppetjones.github.io/rym-py/rym-token"
 
 [build-system]
-requires = ["hatchling", "hatch-vcs"]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.hatch]
-[tool.hatch.version]
-source = "vcs"
 
+[tool.hatch]
 [tool.hatch.build]
 exclude = ["tests", "notebooks"]
 include = ["rym"]
 
-[tool.hatch.build.hooks.vcs]
-version-file = "rym/token/_version.py"
+# NOTE: Can't seem to get this to work with github actions
+# [tool.hatch.build.hooks.vcs]
+# version-file = "rym/token/_version.py"
+# [tool.hatch.version]
+# source = "vcs"
 
 [tool.pdm]
 [tool.pdm.scripts]

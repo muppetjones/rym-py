@@ -39,7 +39,7 @@ on:
 
 jobs:
   build-n-publish:
-    name: Build and publish
+    name: build and publish
     runs-on: ubuntu-latest
     defaults:
       run:
