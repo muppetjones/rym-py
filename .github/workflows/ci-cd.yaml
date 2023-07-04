@@ -23,11 +23,11 @@ jobs:
       with:
         base: ${{ github.ref }}
         filters: |
-          lpath:
+          rym-lpath:
             - 'rym-lpath/**'
-          alias:
+          rym-alias:
             - 'rym-alias/**'
-          token:
+          rym-token:
             - 'rym-token/**'
   python-package:
     name: "${{ matrix.package }}"

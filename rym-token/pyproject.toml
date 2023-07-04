@@ -24,6 +24,7 @@ classifiers = [
 requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
+[tool.hatch]
 [tool.hatch.version]
 source = "vcs"
 
@@ -33,7 +34,6 @@ include = ["rym"]
 
 [tool.hatch.build.hooks.vcs]
 version-file = "rym/token/_version.py"
-
 
 [tool.pdm]
 [tool.pdm.scripts]
