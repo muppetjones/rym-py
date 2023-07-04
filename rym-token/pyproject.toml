@@ -38,6 +38,8 @@ version-file = "rym/token/_version.py"
 source = "vcs"
 tag-pattern = "rym-token-(?P<version>.+)"
 fallback-version = "0.1.2"
+[tool.hatch.version.raw-options]
+local_scheme = "no-local-version"
 
 [tool.pdm]
 [tool.pdm.scripts]
