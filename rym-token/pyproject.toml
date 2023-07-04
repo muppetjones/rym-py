@@ -27,12 +27,15 @@ build-backend = "hatchling.build"
 
 [tool.hatch.version]
 source = "vcs"
-fall-back = "0.1.2"
+fallback-version = "0.1.2"
+tag-pattern = "rym-token-(?P<version>.+)"
 
 [tool.hatch.build]
 exclude = ["tests", "notebooks"]
 include = ["rym"]
-hooks.vcs.version-file = "rym/token/_version.py"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "rym/token/_version.py"
 
 
 [tool.pdm]
