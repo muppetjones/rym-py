@@ -6,11 +6,36 @@ on:
       target:
         required: true
         type: string
+      test-pypi:
+        description: 'Publish to test PyPI'
+        required: false
+        type: boolean
+        default: false
+      real-pypi:
+        description: 'Publish to PyPI'
+        required: false
+        type: boolean
+        default: true
     secrets:
       TEST_PYPI_API_TOKEN:
         required: true
       PYPI_API_TOKEN:
         required: true
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'The target project'
+        required: true
+      test-pypi:
+        description: 'Publish to test PyPI'
+        required: true
+        type: boolean
+        default: false
+      real-pypi:
+        description: 'Publish to PyPI'
+        required: true
+        type: boolean
+        default: true
 
 jobs:
   build-n-publish:
@@ -40,14 +65,14 @@ jobs:
         --outdir dist/
         .
     - name: Publish distribution to Test PyPI
-      if: "!startsWith(github.ref, 'refs/tags')"
+      if: ${{ inputs.test_pypi || !startsWith(github.ref, 'refs/tags') }}
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{secrets.TEST_PYPI_API_TOKEN}}
         repository_url: https://test.pypi.org/legacy/
         packages_dir: ${{ inputs.target }}/dist
     - name: Publish distribution to PyPI
-      if: startsWith(github.ref, 'refs/tags')
+      if: ${{ inputs.real_pypi || startsWith(github.ref, 'refs/tags') }}
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.PYPI_API_TOKEN }}

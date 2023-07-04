@@ -1,0 +1,28 @@
+name: Python Package
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        required: true
+        type: string
+    secrets:
+      TEST_PYPI_API_TOKEN:
+        required: true
+      PYPI_API_TOKEN:
+        required: true
+
+jobs:
+  test:
+    needs: changes
+    uses: ./.github/workflows/test-pdm.yaml
+    with:
+      target: ${{ inputs.package }}
+  build-publish:
+    needs: [changes, rym-alias-test]
+    uses: ./.github/workflows/publish-to-pypi.yaml
+    with:
+      target: ${{ inputs.package }}
+    secrets:
+      TEST_PYPI_API_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
