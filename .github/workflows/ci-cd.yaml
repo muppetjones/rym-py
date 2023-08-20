@@ -3,13 +3,14 @@ name:  CI/CD
 on: push
 
 jobs:
-  changes:
+  change-matrix:
     runs-on: ubuntu-latest
     # Set job outputs to values from filter step
     outputs:
       lpath: ${{ steps.filter.outputs.lpath }}
       alias: ${{ steps.filter.outputs.alias }}
       token: ${{ steps.filter.outputs.token }}
+      packages: ${{ steps.filter.outputs.changes }}
     steps:
     # For pull requests it's not necessary to checkout the code
     - uses: actions/checkout@v3
@@ -20,56 +21,24 @@ jobs:
     - uses: dorny/paths-filter@v2
       id: filter
       with:
-        base: ${{ github.ref }}
+        base: ${{ github.base_ref }}
         filters: |
-          lpath:
+          rym-lpath:
             - 'rym-lpath/**'
-          alias:
+          rym-alias:
             - 'rym-alias/**'
-          token:
+          rym-token:
             - 'rym-token/**'
-  rym-alias-test:
-    needs: changes
-    if: ${{ needs.changes.outputs.alias == 'true' || startsWith(github.event.head_commit.message, 'build') || startsWith(github.ref, 'refs/tags') }}
-    uses: ./.github/workflows/test-pdm.yaml
+  python-package:
+    name: "${{ matrix.package }}"
+    needs: change-matrix
+    strategy:
+      matrix:
+        # Parse JSON array containing names of all filters matching any of changed files
+        package: ${{ fromJSON(needs.change-matrix.outputs.packages) }}
+    uses: ./.github/workflows/py-pkg.yaml
     with:
-      target: rym-alias
-  rym-alias-build-publish:
-    needs: [changes, rym-alias-test]
-    if: ${{ needs.changes.outputs.alias == 'true' || startsWith(github.event.head_commit.message, 'build') || startsWith(github.ref, 'refs/tags') }}
-    uses: ./.github/workflows/publish-to-pypi.yaml
-    with:
-      target: rym-alias
-    secrets:
-      TEST_PYPI_API_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
-      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-  rym-lpath-test:
-    needs: changes
-    if: ${{ needs.changes.outputs.lpath == 'true'  || startsWith(github.event.head_commit.message, 'build') || startsWith(github.ref, 'refs/tags') }}
-    uses: ./.github/workflows/test-pdm.yaml
-    with:
-      target: rym-lpath
-  rym-lpath-build-publish:
-    needs: [changes, rym-lpath-test]
-    if: ${{ needs.changes.outputs.lpath == 'true' || startsWith(github.event.head_commit.message, 'build') || startsWith(github.ref, 'refs/tags') }}
-    uses: ./.github/workflows/publish-to-pypi.yaml
-    with:
-      target: rym-lpath
-    secrets:
-      TEST_PYPI_API_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
-      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-  rym-token-test:
-    needs: changes
-    if: ${{ needs.changes.outputs.token == 'true'  || startsWith(github.event.head_commit.message, 'build') || startsWith(github.ref, 'refs/tags') }}
-    uses: ./.github/workflows/test-pdm.yaml
-    with:
-      target: rym-token
-  rym-token-build-publish:
-    needs: [changes, rym-token-test]
-    if: ${{ needs.changes.outputs.token == 'true' || startsWith(github.event.head_commit.message, 'build') || startsWith(github.ref, 'refs/tags') }}
-    uses: ./.github/workflows/publish-to-pypi.yaml
-    with:
-      target: rym-token
+      package: ${{ matrix.package }}
     secrets:
       TEST_PYPI_API_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
       PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}

@@ -1,6 +1,6 @@
 [project]
 name = "rym-token"
-version = "0.1.2"
+dynamic = ["version"]
 description = "A python library for tokenizing text."
 authors = [
     {name = "Stephen Bush", email = "muppetjones@gmail.com"},
@@ -20,14 +20,27 @@ classifiers = [
 "Bug Tracker" = "https://github.com/muppetjones/rym-py/issues"
 "Documentation" = "https://muppetjones.github.io/rym-py/rym-token"
 
+
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
+
+[tool.hatch]
 [tool.hatch.build]
 exclude = ["tests", "notebooks"]
 include = ["rym"]
 
+# NOTE: This doesn't seem reliable
+[tool.hatch.version]
+source = "vcs"
+tag-pattern = '''^rym-token-(?P<version>[vV]?\d+(?:\.\d+){0,2}[^\+]*)(?:\+.*)?$'''
+fallback-version = "0.1.2"
+[tool.hatch.version.raw-options]
+root = ".."
+local_scheme = "no-local-version"
+[tool.hatch.build.hooks.vcs]
+version-file = "rym/token/_version.py"
 
 [tool.pdm]
 [tool.pdm.scripts]
@@ -66,7 +79,8 @@ lint = [
 
 [tool.coverage.run]
 omit = [
-    "**/__init__.py"
+    "**/__init__.py",
+    "**/_version.py"
 ]
 
 [tool.coverage.report]
