@@ -6,6 +6,16 @@ on:
       package:
         required: true
         type: string
+      publish_to_pypi_real:
+        description: 'Publish to PyPI'
+        required: false
+        type: boolean
+        default: false
+      publish_to_pypi_test:
+        description: 'Publish to test PyPI'
+        required: false
+        type: boolean
+        default: false
     secrets:
       TEST_PYPI_API_TOKEN:
         required: true
@@ -22,4 +32,6 @@ jobs:
     uses: ./.github/workflows/publish-to-pypi.yaml
     with:
       target: ${{ inputs.package }}
+      publish_to_pypi_real: ${{ inputs.publish_to_pypi_real }}
+      publish_to_pypi_test: ${{ inputs.publish_to_pypi_test }}
     secrets: inherit
