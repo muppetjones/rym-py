@@ -26,7 +26,7 @@ jobs:
             - 'rym-alias/**'
           rym-token:
             - 'rym-token/**'
-  python-package-matrix:
+  python-package-change:
     name: "${{ matrix.package }}"
     if: ${{ needs.change-matrix.outputs.packages != '[]' && needs.change-matrix.outputs.packages != '' }}
     needs: change-matrix
@@ -42,7 +42,7 @@ jobs:
     secrets:
       TEST_PYPI_API_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
       PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-  tag-package:
+  tag-matrix:
     runs-on: ubuntu-latest
     outputs:
       package: ${{ steps.get-package.outputs.package }}
@@ -54,15 +54,15 @@ jobs:
         run: |
           PKG_NAME="${TAG_NAME%%-v[0-9]*}"
           echo "package: ${PKG_NAME}"
-          echo "package=${PKG_NAME}" >> $GITHUB_OUTPUT
+          echo "package=[${PKG_NAME}]" >> $GITHUB_OUTPUT
   python-package-tag:
     name: "${{ matrix.package }}"
-    if: ${{ needs.tag-package.outputs.package != '' }}
+    if: ${{ needs.tag-matrix.outputs.package != '' && needs.tag-matrix.outputs.package != '[]' }}
     needs: tag-matrix
     strategy:
+      # Parse JSON array containing names of all filters matching any of changed files
       matrix:
-        # Parse JSON array containing names of all filters matching any of changed files
-        package: [ ${{ needs.tag-package.outputs.package) }} ]
+        package: ${{ fromJSON(needs.tag-matrix.outputs.package) }}
     uses: ./.github/workflows/py-pkg.yaml
     with:
       package: ${{ matrix.package }}
