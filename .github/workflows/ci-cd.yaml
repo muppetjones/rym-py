@@ -50,9 +50,6 @@ jobs:
           - package: ${{ needs.tag-package.output }}
             publish_to_pypi_real: true
             publish_to_pypi_test: false
-        exclude:
-          # attempt to prevent accidental execution (may be unnecessary)
-          - package: null
     uses: ./.github/workflows/py-pkg.yaml
     with:
       package: ${{ matrix.package }}
