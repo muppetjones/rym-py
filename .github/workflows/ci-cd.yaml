@@ -7,9 +7,6 @@ jobs:
     runs-on: ubuntu-latest
     # Set job outputs to values from filter step
     outputs:
-      lpath: ${{ steps.filter.outputs.lpath }}
-      alias: ${{ steps.filter.outputs.alias }}
-      token: ${{ steps.filter.outputs.token }}
       packages: ${{ steps.filter.outputs.changes }}
     steps:
     # For pull requests it's not necessary to checkout the code
@@ -21,7 +18,7 @@ jobs:
     - uses: dorny/paths-filter@v2
       id: filter
       with:
-        base: ${{ github.base_ref != '' && github.base_ref || github.before }}
+        base: ${{ github.base_ref }}
         filters: |
           rym-lpath:
             - 'rym-lpath/**'
@@ -29,16 +26,38 @@ jobs:
             - 'rym-alias/**'
           rym-token:
             - 'rym-token/**'
+  tag-package:
+    runs-on: ubuntu-latest
+    outputs:
+      package: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: get-package
+        if: ${{ startsWith(github.ref, 'refs/tags/rym-') }}
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: echo "package=${TAG_NAME%%-v[0-9]*}" >> $GITHUB_OUTPUT
   python-package:
     name: "${{ matrix.package }}"
-    needs: change-matrix
+    needs: [change-matrix, tag-package]
     strategy:
       matrix:
         # Parse JSON array containing names of all filters matching any of changed files
         package: ${{ fromJSON(needs.change-matrix.outputs.packages) }}
+        publish_to_pypi_real: [false]
+        publish_to_pypi_test: [true]
+        include:
+          # Include configuration from tag -- if detected
+          - package: ${{ needs.tag-package.output }}
+            publish_to_pypi_real: true
+            publish_to_pypi_test: false
+        exclude:
+          # attempt to prevent accidental execution (may be unnecessary)
+          - package: null
     uses: ./.github/workflows/py-pkg.yaml
     with:
       package: ${{ matrix.package }}
+      publish_to_pypi_real: ${{ matrix.publish_to_pypi_real }}
+      publish_to_pypi_test: ${{ matrix.publish_to_pypi_false }}
     secrets:
       TEST_PYPI_API_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
       PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
