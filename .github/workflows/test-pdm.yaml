@@ -26,9 +26,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: true
           cache-dependency-path: '${{ inputs.target }}/pdm.lock'
+          fetch-tags: true
       - name: Install dependencies
         run: |
-          pdm sync --dev
+          pdm sync --dev -v
       - name: Test
         run: |
           pdm run -v pytest
