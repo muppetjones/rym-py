@@ -35,7 +35,10 @@ jobs:
         if: ${{ startsWith(github.ref, 'refs/tags/rym-') }}
         env:
           TAG_NAME: ${{ github.ref_name }}
-        run: echo "package=${TAG_NAME%%-v[0-9]*}" >> $GITHUB_OUTPUT
+        run: >-
+          PKG_NAME="${TAG_NAME%%-v[0-9]*}"
+          echo "package: ${PKG_NAME}"
+          echo "package=${PKG_NAME}" >> $GITHUB_OUTPUT
   python-package:
     name: "${{ matrix.package }}"
     needs: [change-matrix, tag-package]
@@ -47,7 +50,7 @@ jobs:
         publish_to_pypi_test: [true]
         include:
           # Include configuration from tag -- if detected
-          - package: ${{ needs.tag-package.output }}
+          - package: ${{ needs.tag-package.output.package }}
             publish_to_pypi_real: true
             publish_to_pypi_test: false
     uses: ./.github/workflows/py-pkg.yaml
