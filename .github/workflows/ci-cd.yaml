@@ -21,7 +21,7 @@ jobs:
     - uses: dorny/paths-filter@v2
       id: filter
       with:
-        base: ${{ github.base_ref }}
+        base: ${{ github.base_ref != '' && github.base_ref || github.before }}
         filters: |
           rym-lpath:
             - 'rym-lpath/**'
