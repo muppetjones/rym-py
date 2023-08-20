@@ -35,7 +35,7 @@ jobs:
         if: ${{ startsWith(github.ref, 'refs/tags/rym-') }}
         env:
           TAG_NAME: ${{ github.ref_name }}
-        run: >-
+        run: |
           PKG_NAME="${TAG_NAME%%-v[0-9]*}"
           echo "package: ${PKG_NAME}"
           echo "package=${PKG_NAME}" >> $GITHUB_OUTPUT
