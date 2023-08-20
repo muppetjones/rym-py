@@ -20,7 +20,10 @@ jobs:
         working-directory: ./${{ inputs.target }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 50
+          fetch-tags: true
       - name: Get tags
         run: git fetch --tags origin
       - name: Set up PDM
@@ -31,6 +34,7 @@ jobs:
           cache-dependency-path: '${{ inputs.target }}/pdm.lock'
       - name: Install dependencies
         run: |
+          git fetch --tags origin
           pdm sync --dev -v
       - name: Test
         run: |
