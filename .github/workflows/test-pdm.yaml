@@ -20,13 +20,14 @@ jobs:
         working-directory: ./${{ inputs.target }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-tags: true
       - name: Set up PDM
         uses: pdm-project/setup-pdm@v3
         with:
           python-version: ${{ matrix.python-version }}
           cache: true
           cache-dependency-path: '${{ inputs.target }}/pdm.lock'
-          fetch-tags: true
       - name: Install dependencies
         run: |
           pdm sync --dev -v
