@@ -45,7 +45,7 @@ jobs:
   tag-matrix:
     runs-on: ubuntu-latest
     outputs:
-      package: ${{ steps.get-package.outputs.package }}
+      package: ${{ steps.get-package.outputs.packages }}
     steps:
       - id: get-package
         if: ${{ startsWith(github.ref, 'refs/tags/rym-') }}
