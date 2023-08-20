@@ -34,7 +34,6 @@ jobs:
           cache-dependency-path: '${{ inputs.target }}/pdm.lock'
       - name: Install dependencies
         run: |
-          git fetch --tags origin
           pdm sync --dev -v
       - name: Test
         run: |
