@@ -19,9 +19,10 @@ jobs:
       run:
         working-directory: ./${{ inputs.target }}
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-tags: true
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Get tags
+        run: git fetch --tags origin
       - name: Set up PDM
         uses: pdm-project/setup-pdm@v3
         with:
