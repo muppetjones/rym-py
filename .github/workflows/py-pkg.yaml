@@ -32,6 +32,6 @@ jobs:
     uses: ./.github/workflows/publish-to-pypi.yaml
     with:
       target: ${{ inputs.package }}
-      publish_to_pypi_real: ${{ publish_to_pypi_real }}
-      publish_to_pypi_test: ${{ publish_to_pypi_test }}
+      publish_to_pypi_real: ${{ inputs.publish_to_pypi_real }}
+      publish_to_pypi_test: ${{ inputs.publish_to_pypi_test }}
     secrets: inherit
