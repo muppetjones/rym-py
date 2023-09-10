@@ -1,6 +1,6 @@
 [project]
 name = "rym-alias"
-version = "0.1.1"
+dynamic = ["version"]
 description = "Simple aliasing."
 authors = [
     {name = "Stephen Bush", email = "2041619+muppetjones@users.noreply.github.com"},
@@ -55,6 +55,9 @@ build-backend = "hatchling.build"
 [tool.hatch.build]
 exclude = ["tests", "notebooks"]
 include = ["rym"]
+
+[tool.hatch.version]
+path = "rym/alias/__about__.py"
 
 
 [tool.pytest.ini_options]
