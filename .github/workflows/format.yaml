@@ -1,0 +1,78 @@
+name:  Format
+
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+
+
+jobs:
+  change-matrix:
+    runs-on: ubuntu-latest
+    # Set job outputs to values from filter step
+    outputs:
+      ipy: ${{ steps.filter.outputs.ipy }}
+      ipy_files: ${{ steps.filter.outputs.ipy_files }}
+      json: ${{ steps.filter.outputs.json }}
+      json_files: ${{ steps.filter.outputs.json_files }}
+      python: ${{ steps.filter.outputs.python }}
+      python_files: ${{ steps.filter.outputs.python_files }}
+      markdown: ${{ steps.filter.outputs.markdown }}
+      markdown_files: ${{ steps.filter.outputs.markdown_files }}
+      file_types: ${{ steps.filter.outputs.changes }}
+    permissions:
+      pull-requests: read
+    steps:
+    # For pull requests it's not necessary to checkout the code
+      - uses: actions/checkout@v3
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          # Use context to get the branch where commits were pushed.
+          # If there is only one long-lived branch (e.g. master),
+          # you can specify it directly.
+          # If it's not configured, the repository default branch is used.
+          base: ${{ github.ref }}
+          list_files: shell
+          filters: |
+            ipy:
+              - "**.ipy"
+            json:
+              - "**.json"
+            markdown:
+              - "**.md"
+            python:
+              - "**.py"
+  python:
+    needs: change-matrix
+    if: ${{ needs.change-matrix.outputs.python == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+      - name: pip
+        run: pip install black isort
+      - name: isort
+        run: isort ${{ needs.change-matrix.outputs.python_files }}
+      - name: black
+        run: black ${{ needs.change-matrix.outputs.python_files }}
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "format-py: black and isort"
+  markdown:
+    needs: change-matrix
+    if: ${{ needs.change-matrix.outputs.markdown == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          cache: 'npm'
+      - name: npm
+        run: npm install markdownlint
+      - name: markdownlint
+        run: markdownlint --fix ${{ needs.change-matrix.outputs.markdown_files }}
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "format-md: markdownlint"
+
