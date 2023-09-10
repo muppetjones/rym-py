@@ -67,11 +67,11 @@ jobs:
       run:
         working-directory: ./${{ inputs.package }}
     if: |
-      ${{ github.event_name == 'push'
-          || (github.event_name == 'pull_request'
-              && (startsWith(github.head_ref, 'release/')
-                  && startsWith(github.head_ref, 'hotfix/')
-              )  ) }}
+      github.event_name == 'push'
+      || (
+        github.event_name == 'pull_request'
+        && (startsWith(github.head_ref, 'release/') && startsWith(github.head_ref, 'hotfix/'))
+      )
     steps:
       - uses: actions/checkout@v3
         with:
