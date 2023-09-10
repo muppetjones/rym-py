@@ -36,7 +36,7 @@ path = "rym/lpath/__about__.py"
 [tool.pdm.scripts]
 init-hooks = "pre-commit install"
 rm-hooks = "pre-commit uninstall"
-lint = "flake8 rym"
+lint = "ruff check ."
 clean = "find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete -o -type d -name .pytest_cache -delete"
 test = "pytest"
 
@@ -56,27 +56,25 @@ test = [
     "tox>=4.4.6",
 ]
 
-[project.optional-dependencies]
-test = [
-    "pytest>=6.2",
-    "coverage[toml]>=7.1.0",
-    "pytest-cov>=4.0.0",
-]
-lint = [
-    "flake8>=3.8",
-    "black>=20.8b1",
-]
-
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = [
     "-ra -vvv",
-    "--cov=rym --cov-append",
+    "--cov=rym",
     "--import-mode=importlib",
 ]
-testpaths = [
-    "tests",
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+omit = [
+    "**/__init__.py",
+    "**/_version.py",
+    "**/__about__.py",
 ]
+
+[tool.coverage.report]
+show_missing = true
 
 [tool.black]
 line-length = 83

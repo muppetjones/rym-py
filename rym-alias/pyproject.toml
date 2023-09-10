@@ -36,12 +36,12 @@ path = "rym/alias/__about__.py"
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = [
-    "-ra -vvv --cov=rym",
+    "-ra -vvv",
+    "--cov=rym",
     "--import-mode=importlib",
 ]
-testpaths = [
-    "tests",
-]
+pythonpath = ["."]
+testpaths = ["tests"]
 
 [tool.black]
 line-length = 83
@@ -77,7 +77,7 @@ select = ["E","F","W"]
 [tool.pdm.scripts]
 init-hooks = "pre-commit install"
 rm-hooks = "pre-commit uninstall"
-lint = "flake8 rym"
+lint = "ruff check ."
 clean = "find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete"
 test = "pytest"
 
@@ -100,3 +100,12 @@ test = [
     "tox>=4.4.6",
 ]
 
+[tool.coverage.run]
+omit = [
+    "**/__init__.py",
+    "**/_version.py",
+    "**/__about__.py",
+]
+
+[tool.coverage.report]
+show_missing = true
