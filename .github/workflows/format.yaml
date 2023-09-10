@@ -59,20 +59,21 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "format-py: black and isort"
-  markdown:
-    needs: change-matrix
-    if: ${{ needs.change-matrix.outputs.markdown == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          cache: 'npm'
-      - name: npm
-        run: npm install markdownlint
-      - name: markdownlint
-        run: markdownlint --fix ${{ needs.change-matrix.outputs.markdown_files }}
-      - uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: "format-md: markdownlint"
+  # NOTE: Not working -- "markdownlint not found"
+  # markdown:
+  #   needs: change-matrix
+  #   if: ${{ needs.change-matrix.outputs.markdown == 'true' }}
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         cache: 'npm'
+  #     - name: npm
+  #       run: npm install markdownlint
+  #     - name: markdownlint
+  #       run: markdownlint --fix ${{ needs.change-matrix.outputs.markdown_files }}
+  #     - uses: stefanzweifel/git-auto-commit-action@v4
+  #       with:
+  #         commit_message: "format-md: markdownlint"
 
