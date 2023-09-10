@@ -43,15 +43,11 @@ jobs:
               - "**.md"
             python:
               - "**.py"
-      - name: python-files
-        run: echo ${{ steps.filter.outputs.python_files }}
   python:
     needs: change-matrix
     if: ${{ needs.change-matrix.outputs.python == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - name: python-files
-        run: echo ${{ needs.change-matrix.outputs.python_files }}
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
       - name: pip
