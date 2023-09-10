@@ -1,6 +1,6 @@
 [project]
 name = "rym-lpath"
-version = "0.3.1"
+dynamic = ["version"]
 description = "A python library for accessing mappings and objects."
 authors = [
     {name = "Stephen Bush", email = "muppetjones@gmail.com"},
@@ -28,6 +28,8 @@ build-backend = "hatchling.build"
 exclude = ["tests", "notebooks"]
 include = ["rym"]
 
+[tool.hatch.version]
+path = "rym/lpath/__about__.py"
 
 [tool.pdm]
 [tool.pdm.scripts]

@@ -59,7 +59,6 @@ include = ["rym"]
 [tool.hatch.version]
 path = "rym/alias/__about__.py"
 
-
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = [
