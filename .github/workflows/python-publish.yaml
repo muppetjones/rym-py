@@ -14,7 +14,7 @@ on:
       pypi_url:
         description: 'PyPI URL'
         type: string
-        default: https://pypi.python.org/simple/
+        default: https://upload.pypi.org/legacy/
       test_pypi_url:
         description: 'Test PyPI URL'
         type: string
