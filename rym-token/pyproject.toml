@@ -33,6 +33,7 @@ include = ["rym"]
 [tool.hatch.version]
 path = "rym/token/__about__.py"
 
+
 [tool.pdm]
 [tool.pdm.scripts]
 init-hooks = "pre-commit install"
@@ -49,6 +50,7 @@ ipy = [
 ]
 dev = [
     "pre-commit>=3.0.4",
+    "ruff>=0.0.287",
 ]
 test = [
     "pytest>=7.2.1",
@@ -120,3 +122,4 @@ skip_glob = "**/__init__.py"
 ignore = []
 line-length = 88
 select = ["E","F","W"]
+exclude = ['__init__.py']

@@ -1,6 +1,6 @@
 # isort: skip_file
 
-try:
+try:  # noqa
     from ._delim import (
         get_delimiter,
         get_default_delimiter,

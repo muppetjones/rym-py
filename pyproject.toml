@@ -46,3 +46,4 @@ skip_glob = "**/__init__.py"
 ignore = []
 line-length = 88
 select = ["E","F","W"]
+exclude = ['__init__.py']

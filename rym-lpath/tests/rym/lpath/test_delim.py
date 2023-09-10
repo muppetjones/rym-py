@@ -2,7 +2,7 @@
 """Test."""
 
 import logging
-from unittest import TestCase, mock
+from unittest import TestCase
 
 import rym.lpath._delim as MOD
 
