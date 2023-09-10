@@ -1,0 +1,48 @@
+[project]
+dependencies = []
+requires-python = ">=3.8"
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "-e rym-alias @ file:///${PROJECT_ROOT}/rym-alias",
+    "-e rym-lpath @ file:///${PROJECT_ROOT}/rym-lpath",
+    "-e rym-token @ file:///${PROJECT_ROOT}/rym-token",
+]
+
+[tool.pdm]
+[tool.pdm.scripts]
+init-hooks = "pre-commit install"
+rm-hooks = "pre-commit uninstall"
+lint = "ruff"
+clean = "find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete"
+clean-dry = "find . -type f -name '*.py[co]' -o -type d -name __pycache__ -o -type d -name .pytest_cache"
+
+[tool.black]
+line-length = 83
+target-version = ["py38", "py39", "py310"]
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+atomic = true
+line_length = 83
+float_to_top = true
+skip_glob = "**/__init__.py"
+
+[tool.ruff]
+ignore = []
+line-length = 88
+select = ["E","F","W"]
