@@ -20,33 +20,24 @@ classifiers = [
 "Bug Tracker" = "https://github.com/muppetjones/rym-py/issues"
 "Documentation" = "https://muppetjones.github.io/rym-py/rym-token"
 
-
 [build-system]
-requires = ["hatchling", "hatch-vcs"]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
-
 
 [tool.hatch]
 [tool.hatch.build]
 exclude = ["tests", "notebooks"]
 include = ["rym"]
 
-# NOTE: This doesn't seem reliable
 [tool.hatch.version]
-source = "vcs"
-tag-pattern = '''^rym-token-(?P<version>[vV]?\d+(?:\.\d+){0,2}[^\+]*)(?:\+.*)?$'''
-fallback-version = "0.1.2"
-[tool.hatch.version.raw-options]
-root = ".."
-local_scheme = "no-local-version"
-[tool.hatch.build.hooks.vcs]
-version-file = "rym/token/_version.py"
+path = "rym/token/__about__.py"
+
 
 [tool.pdm]
 [tool.pdm.scripts]
 init-hooks = "pre-commit install"
 rm-hooks = "pre-commit uninstall"
-lint = "flake8 rym"
+lint = "ruff check ."
 clean = "find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete"
 clean-dry = "find . -type f -name '*.py[co]' -o -type d -name __pycache__ -o -type d -name .pytest_cache"
 test = "pytest"
@@ -58,6 +49,7 @@ ipy = [
 ]
 dev = [
     "pre-commit>=3.0.4",
+    "ruff>=0.0.287",
 ]
 test = [
     "pytest>=7.2.1",
@@ -66,21 +58,11 @@ test = [
     "tox>=4.4.6",
 ]
 
-[project.optional-dependencies]
-test = [
-    "pytest>=6.2",
-    "coverage[toml]>=7.1.0",
-    "pytest-cov>=4.0.0",
-]
-lint = [
-    "flake8>=3.8",
-    "black>=20.8b1",
-]
-
 [tool.coverage.run]
 omit = [
     "**/__init__.py",
-    "**/_version.py"
+    "**/_version.py",
+    "**/__about__.py",
 ]
 
 [tool.coverage.report]
@@ -93,12 +75,8 @@ addopts = '''
 -vvv
 --cov=rym
 '''
-pythonpath = [
-    "."
-]
-testpaths = [
-    "tests",
-]
+pythonpath = ["."]
+testpaths = ["tests"]
 
 [tool.black]
 line-length = 83
@@ -124,3 +102,9 @@ atomic = true
 line_length = 83
 float_to_top = true
 skip_glob = "**/__init__.py"
+
+[tool.ruff]
+ignore = []
+line-length = 88
+select = ["E","F","W"]
+exclude = ['__init__.py']

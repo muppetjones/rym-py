@@ -1,0 +1,52 @@
+name:  CI
+
+on:
+  push:
+    branches: [ "develop", "main" ]
+  pull_request:
+
+jobs:
+  change-matrix:
+    runs-on: ubuntu-latest
+    # Set job outputs to values from filter step
+    outputs:
+      packages: ${{ steps.filter.outputs.changes }}
+    permissions:
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v3
+        # For pull requests it's not necessary to checkout the code
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          # Use context to get the branch where commits were pushed.
+          # If there is only one long-lived branch (e.g. master),
+          # you can specify it directly.
+          # If it's not configured, the repository default branch is used.
+          base: ${{ github.ref }}
+          filters: |
+            rym-lpath:
+              - 'rym-lpath/**'
+              - ".github/workflows/ci*.yaml"
+              - ".github/workflows/python*.yaml"
+            rym-alias:
+              - 'rym-alias/**'
+              - ".github/workflows/ci*.yaml"
+              - ".github/workflows/python*.yaml"
+            rym-token:
+              - 'rym-token/**'
+              - ".github/workflows/ci*.yaml"
+              - ".github/workflows/python*.yaml"
+  python-package:
+    name: "${{ matrix.package }}"
+    needs: change-matrix
+    if: ${{ needs.change-matrix.outputs.packages != '[]' && needs.change-matrix.outputs.packages != '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Parse JSON array containing names of all filters matching any of changed files
+        package: ${{ fromJSON(needs.change-matrix.outputs.packages) }}
+    uses: ./.github/workflows/python-build.yaml
+    with:
+      package: ${{ matrix.package }}
+

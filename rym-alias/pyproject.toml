@@ -1,6 +1,6 @@
 [project]
 name = "rym-alias"
-version = "0.1.1"
+dynamic = ["version"]
 description = "Simple aliasing."
 authors = [
     {name = "Stephen Bush", email = "2041619+muppetjones@users.noreply.github.com"},
@@ -17,36 +17,13 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
+[project.optional-dependencies]
+toml = [ "toml>=0.10.2" ]
+
 [project.urls]
 "Homepage" = "https://github.com/muppetjones/rym-py/tree/main/rym-alias"
 "Bug Tracker" = "https://github.com/muppetjones/rym-py/issues"
 "Documentation" = "https://muppetjones.github.io/rym-py/rym-alias"
-
-[tool.pdm]
-[tool.pdm.scripts]
-init-hooks = "pre-commit install"
-rm-hooks = "pre-commit uninstall"
-lint = "flake8 rym"
-clean = "find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete"
-test = "pytest"
-
-[tool.pdm.dev-dependencies]
-dev = [
-    "pre-commit>=2.21.0",
-]
-ipy = [
-    "ipykernel>=6.16.2",
-    "jupyterlab>=3.6.1",
-]
-test = [
-    "pytest>=7.2.1",
-    "pytest-cov>=4.0.0",
-    "coverage>=7.2.0",
-    "toml>=0.10.2",
-    "pyyaml>=6.0",
-    "tomlkit>=0.11.6",
-    "tox>=4.4.6",
-]
 
 [build-system]
 requires = ["hatchling"]
@@ -56,16 +33,18 @@ build-backend = "hatchling.build"
 exclude = ["tests", "notebooks"]
 include = ["rym"]
 
+[tool.hatch.version]
+path = "rym/alias/__about__.py"
 
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = [
-    "-ra -vvv --cov=rym",
+    "-ra -vvv",
+    "--cov=rym",
     "--import-mode=importlib",
 ]
-testpaths = [
-    "tests",
-]
+pythonpath = ["."]
+testpaths = ["tests"]
 
 [tool.black]
 line-length = 83
@@ -91,3 +70,45 @@ atomic = true
 line_length = 83
 float_to_top = true
 skip_glob = "**/__init__.py"
+
+[tool.ruff]
+ignore = []
+line-length = 88
+select = ["E","F","W"]
+
+[tool.pdm]
+[tool.pdm.scripts]
+init-hooks = "pre-commit install"
+rm-hooks = "pre-commit uninstall"
+lint = "ruff check ."
+clean = "find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete"
+test = "pytest"
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "pre-commit>=2.21.0",
+    "ruff>=0.0.287",
+]
+ipy = [
+    "ipykernel>=6.16.2",
+    "jupyterlab>=3.6.1",
+]
+test = [
+    "pytest>=7.2.1",
+    "pytest-cov>=4.0.0",
+    "coverage>=7.2.0",
+    "toml>=0.10.2",
+    "pyyaml>=6.0",
+    "tomlkit>=0.11.6",
+    "tox>=4.4.6",
+]
+
+[tool.coverage.run]
+omit = [
+    "**/__init__.py",
+    "**/_version.py",
+    "**/__about__.py",
+]
+
+[tool.coverage.report]
+show_missing = true

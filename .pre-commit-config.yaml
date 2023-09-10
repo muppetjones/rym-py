@@ -10,7 +10,12 @@ repos:
     hooks:
       - id: black
         args: ["--exclude", "docs"]
-  - repo: https://github.com/pdm-project/pdm
-    rev: 2.4.5
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.0.287
     hooks:
-      - id: pdm-lock-check
+      - id: ruff
+  # - repo: https://github.com/pdm-project/pdm
+  #   rev: 2.4.5
+  #   hooks:
+  #     - id: pdm-lock-check
