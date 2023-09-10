@@ -6,7 +6,7 @@ groups = ["default", "dev", "test", "ipy"]
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
-content_hash = "sha256:dd7cdb25bb2298f4f28f444fe83d270f4bfa24c1bf2f0698402814011bf4342d"
+content_hash = "sha256:8b69186cbb513dedd11144433d75f77f0665cd9e029b2e505b3d0aaaad5242de"
 
 [[package]]
 name = "anyio"
