@@ -139,6 +139,13 @@ class TestGetWithDefault(ThisTestCase):
                 found = MOD.get(example, key, default=default)
                 self.assertEqual(expected, found)
 
+    def test_default_does_not_need_to_be_keyword_arg(self):
+        # NOTE: 'default' used to be kwarg only
+        example = self.get_example()
+        found = MOD.get(example, "x", None)
+        expected = None
+        self.assertEqual(expected, found)
+
 
 class TestGetWithDelim(ThisTestCase):
     """Test feature."""
