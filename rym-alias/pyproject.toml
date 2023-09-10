@@ -17,6 +17,9 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
+[project.optional-dependencies]
+toml = [ "toml>=0.10.2" ]
+
 [project.urls]
 "Homepage" = "https://github.com/muppetjones/rym-py/tree/main/rym-alias"
 "Bug Tracker" = "https://github.com/muppetjones/rym-py/issues"
