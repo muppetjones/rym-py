@@ -44,8 +44,8 @@ class InvalidKey(ValueError):
 def get(
     value: Any,
     key: Union[str, Iterable[str]],
-    *,
     default: Optional[Any] = __DEFAULT,
+    *,
     delim: Optional[str] = None,
 ) -> Any:
     """Return the value of the property found at the given key.
