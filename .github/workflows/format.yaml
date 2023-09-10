@@ -33,7 +33,7 @@ jobs:
           # you can specify it directly.
           # If it's not configured, the repository default branch is used.
           base: ${{ github.ref }}
-          list_files: shell
+          list-files: shell
           filters: |
             ipy:
               - "**.ipy"
