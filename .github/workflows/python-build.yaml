@@ -46,6 +46,9 @@ jobs:
         pdm sync --dev -v --no-self
     - name: Lint
       uses: chartboost/ruff-action@v1
+      with:
+        # does NOT use working-directory
+        src: ${{ inputs.package }}/rym
     - name: Test
       run: |
         pdm test --junitxml=junit/${{ inputs.package }}-${{ matrix.python-version }}.xml
