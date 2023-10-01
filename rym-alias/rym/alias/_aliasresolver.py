@@ -179,7 +179,8 @@ class AliasResolver:
                 lost[k].append(child[k])
             keys |= child.keys()
             collisions |= both
-        logger.debug("Lost aliases due to collisions: %s", pformat(lost))
+        if lost:
+            logger.debug("Lost aliases due to collisions: %s", pformat(lost))
         return sorted(collisions)
 
     def identify(self, value: str, default: Any = _DEFAULT) -> str:
@@ -193,7 +194,7 @@ class AliasResolver:
             AliasError (KeyError) if unknown alias given.
         """
         self._attempts[value] += 1  # know which aliases are used / needed
-        idx = self._lookup.get(value)  # faster than itrable and try:except
+        idx = self._lookup.get(value)  # faster than iterable and try:except
         if idx is not None:
             ...  # handle below
         elif _DEFAULT != default:
