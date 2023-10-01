@@ -48,6 +48,16 @@ class TestEsser(ThisTestCase):
                 self.assertEqual(expected, found)
 
 
+class TestCapitalize(ThisTestCase):
+    """Test function."""
+
+    def test_returns_expected(self):
+        given = "foo"
+        expected = "Foo"
+        found = MOD.capitalize(given)
+        self.assertEqual(expected, found)
+
+
 class TestLower(ThisTestCase):
     """Test function."""
 

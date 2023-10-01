@@ -12,6 +12,7 @@ from unittest import TestCase, mock, skipIf
 import rym.alias as MOD
 from rym.alias import variation
 from rym.alias._alias import Alias, _default_transforms
+from rym.alias._aliasfrozen import FrozenAlias
 from rym.alias._aliasresolver import toml, yaml  # if installed
 
 LOGGER = logging.getLogger(__name__)
@@ -119,9 +120,12 @@ class TestFindCollisions(ThisTestCase):
     def test_returns_iterable(self):
         tests = [
             # (expected, given)
-            (["FOO", "foo"], [[Alias("foo", ["bar"])], [Alias("FOO", ["baz"])]]),
             (
-                ["BAR", "bar"],
+                ["FOO", "Foo", "foo"],
+                [[Alias("foo", ["bar"])], [Alias("FOO", ["baz"])]],
+            ),
+            (
+                ["BAR", "Bar", "bar"],
                 [Alias("foo", ["Bar", "ick"]), Alias("meh", ["bar"])],
             ),
         ]
@@ -145,6 +149,17 @@ class TestIdentify(ThisTestCase):
         subject = MOD.AliasResolver.build(**given)
         with self.assertRaisesRegex(KeyError, "foo"):
             subject.identify("foo")
+
+    def test_uses_default_if_given(self) -> None:
+        kwds = {
+            "identity": "fooBar",
+            "aliases": ["FOO_bar"],
+        }
+        subject = MOD.AliasResolver.build(kwds)
+        default = None
+        expected = default
+        found = subject.identify("foo", default)
+        self.assertEqual(expected, found)
 
     # section
     # ----------------------------------
@@ -199,8 +214,13 @@ class TestResolveAlias(ThisTestCase):
         given = [
             Alias("a", None, None),
             Alias("b", None, None),
+            FrozenAlias.build("c", None, None),
         ]
-        expected = given[:]
+        expected = [
+            Alias("a", None, None),
+            Alias("b", None, None),
+            Alias("c", ["c"], None),
+        ]
         found = MOD.resolve_aliases(given)
         self.assertEqual(expected, found)
 
@@ -306,7 +326,9 @@ class TestResolveAliasEncoding(ThisTestCase):
     @skipIf(not yaml, "yaml not intalled")
     def test_yaml(self):
         with self.subTest("load aliases from root"):
-            self.assert_loads_aliases_from_root(suffix=".yaml", encode=yaml.safe_dump)
+            self.assert_loads_aliases_from_root(
+                suffix=".yaml", encode=yaml.safe_dump
+            )
 
     # section
     # ----------------------------------

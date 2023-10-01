@@ -29,6 +29,7 @@ class TestInit(ThisTestCase):
                 *["fooBar", "FOO_bar"],  # given
                 *["FOOBAR", "FOO_BAR"],  # upper
                 *["foobar", "foo_bar"],  # lower
+                *["Foobar", "Foo_bar"],  # capitalize
             ]
         )
         subject = MOD.Alias(**given)

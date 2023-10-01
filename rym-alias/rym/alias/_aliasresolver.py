@@ -40,6 +40,7 @@ from pprint import pformat
 from typing import Any, Callable, Generator, Iterable, Mapping, Optional
 
 from ._alias import Alias, AliasError
+from ._aliasfrozen import FrozenAlias
 
 
 def _load_pkg(names: Iterable[str]):
@@ -132,7 +133,9 @@ class AliasResolver:
 
     def _build_lookup_index(self) -> None:
         """Index alias lookup."""
-        self._lookup = {k: i for i, x in enumerate(self.aliases) for k in x.all_names()}
+        self._lookup = {
+            k: i for i, x in enumerate(self.aliases) for k in x.all_names()
+        }
         self._attempts = defaultdict(int, {k: 0 for k in self._lookup.keys()})
 
     def add(
@@ -176,10 +179,11 @@ class AliasResolver:
                 lost[k].append(child[k])
             keys |= child.keys()
             collisions |= both
-        logger.debug("Lost aliases due to collisions: %s", pformat(lost))
+        if lost:
+            logger.debug("Lost aliases due to collisions: %s", pformat(lost))
         return sorted(collisions)
 
-    def identify(self, value: str) -> str:
+    def identify(self, value: str, default: Any = _DEFAULT) -> str:
         """Return identity for the given alias value.
 
         Arguments:
@@ -190,8 +194,12 @@ class AliasResolver:
             AliasError (KeyError) if unknown alias given.
         """
         self._attempts[value] += 1  # know which aliases are used / needed
-        idx = self._lookup.get(value)  # faster than itrable and try:except
-        if idx is None:
+        idx = self._lookup.get(value)  # faster than iterable and try:except
+        if idx is not None:
+            ...  # handle below
+        elif _DEFAULT != default:
+            return default
+        else:
             raise AliasError(value)
         return self.aliases[idx].identity
 
@@ -254,6 +262,17 @@ def _(value: Alias) -> Generator[Alias, None, None]:
     yield value
 
 
+@_yield_aliases.register(AliasResolver)
+def _(value: AliasResolver) -> Generator[Alias, None, None]:
+    yield from value.aliases
+
+
+@_yield_aliases.register(FrozenAlias)
+def _(value: FrozenAlias) -> Generator[Alias, None, None]:
+    alias = Alias(value.identity, aliases=value.all_names(), transforms=None)
+    yield alias
+
+
 @_yield_aliases.register(abc.Iterable)
 def _(value: Iterable) -> Generator[Alias, None, None]:
     for item in value:
@@ -283,7 +302,9 @@ def _(value: Path) -> Generator[Alias, None, None]:
 
     func = cases.get(value.suffix)
     if not func:
-        raise ValueError(f"unavailable encoding: {value.suffix} ({value})") from None
+        raise ValueError(
+            f"unavailable encoding: {value.suffix} ({value})"
+        ) from None
 
     content = value.read_text()
     data = func(content)

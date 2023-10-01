@@ -40,9 +40,19 @@ import dataclasses as dcs
 import logging
 from collections import abc, defaultdict
 from functools import singledispatch
-from typing import Any, Callable, Generator, Iterable, Mapping
+from typing import (
+    Any,
+    Callable,
+    Generator,
+    Hashable,
+    Iterable,
+    Mapping,
+    Optional,
+    Tuple,
+)
 
 from . import variation
+from .safesort import safesorted
 
 LOGGER = logging.getLogger(__name__)
 
@@ -55,6 +65,7 @@ def _default_transforms() -> Iterable[Callable[[str], str]]:
     return [
         variation.upper,
         variation.lower,
+        variation.capitalize,
     ]
 
 
@@ -74,11 +85,12 @@ class Alias:
             Default: Upper and lower case of each alias.
     """
 
-    identity: str
-    aliases: Iterable[str]
-    transforms: Iterable[Callable[[str], str]] = dcs.field(
+    identity: Hashable
+    aliases: Iterable[Hashable]
+    transforms: Iterable[Callable[[Hashable], Hashable]] = dcs.field(
         default_factory=_default_transforms
     )
+    strict: bool = False
     logger: logging.Logger = dcs.field(
         default=None, repr=False, hash=False, compare=False
     )
@@ -105,25 +117,59 @@ class Alias:
         self._attempts = defaultdict(int, {k: 0 for k in self.names})
         self._lookup = {
             **{k: 1 for k in opts},
-            **{func(name): 1 for name in opts for func in self.transforms},
+            **dict(self._yield_lookup(opts, self.transforms, strict=self.strict)),
         }
 
     @property
     def names(self) -> Iterable[str]:
         return [self.identity, *self.aliases]
 
+    @staticmethod
+    def _yield_lookup(
+        opts: Iterable[Hashable],
+        transforms: Iterable[Callable],
+        strict: bool,
+    ) -> Tuple[Hashable, int]:
+        """Yield (name, 1) tuples for lookup.
+
+        Arguments:
+            opts: One or more lookup names.
+            transforms: One or more transforms to apply to each name.
+            strict: If true, will raise if unable to apply transform.
+        """
+        for name in opts:
+            for func in transforms:
+                try:
+                    yield (func(name), 1)
+                except Exception:
+                    if strict:
+                        raise RuntimeError(
+                            f"unable to create lookup via {func} while strict: {name}"
+                        )
+                    yield (name, 1)
+
     def add_alias(self, value: str) -> None:
         """Add given alias to lookup, including transformed names."""
         if value in self.aliases:
             self.logger.warning("existing alias: %s", value)
             return  # do not add more than once
-        lookup = {func(value): 1 for func in self.transforms}
+        lookup = self._yield_lookup([value], self.transforms, strict=self.strict)
         self._lookup.update(lookup)
         self.aliases.append(value)
 
-    def all_names(self) -> Iterable[str]:
-        """Return all known aliases and transformations."""
-        return sorted(self._lookup.keys())
+    def all_names(
+        self,
+        _sorted: Optional[Callable] = None,
+        **kwargs,
+    ) -> Iterable[str]:
+        """Return all known aliases and transformations.
+
+        Arguments:
+            _sorted: Inject sorting function. Uses rym.alias.safesorted by default.
+            **kwargs: Keywords for "sorted".
+        """
+        _sorted = _sorted or safesorted
+        return _sorted(self._lookup.keys(), **kwargs)
 
     def add_transform(self, value: Callable[[str], str]) -> None:
         """Add given transform and update alias lookup."""
@@ -131,7 +177,7 @@ class Alias:
             if func in self.transforms:
                 self.logger.warning("existing transform: %s", func)
                 return  # do not add more than once
-            lookup = {func(k): 1 for k in self.names}
+            lookup = self._yield_lookup(self.names, [func], strict=self.strict)
             self._lookup.update(lookup)
             self.transforms.append(func)
 
@@ -161,9 +207,10 @@ class Alias:
         """
         value = resolve_variations(value)
         opts = self.names
+        lookup_gen = self._yield_lookup(self.names, value, strict=self.strict)
         lookup = {
             **{k: 1 for k in opts},
-            **{func(name): 1 for name in opts for func in value},
+            **dict(lookup_gen),
         }
         self._lookup = lookup
         self.transforms = value[:]
