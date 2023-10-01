@@ -35,13 +35,22 @@ LOGGER = logging.getLogger(__name__)
 @cache
 def build_regex() -> SimpleNamespace:
     patterns = {
+        "boolean": _build_regex_pattern_bool(),
         "float": _build_regex_pattern_float(),
-        "scientific": _build_regex_pattern_scientific(),
         "integer": _build_regex_pattern_integer(),
         "null": _build_regex_pattern_null(),
+        "scientific": _build_regex_pattern_scientific(),
     }
     parts = [r"(?P<%s>%s)" % (name, pattern) for name, pattern in patterns.items()]
-    return re.compile("|".join(parts))
+    pattern = "|".join(parts)
+    return re.compile(pattern, re.I)
+
+
+@cache
+def _build_regex_pattern_bool() -> str:
+    """Assume any string value from the null alias."""
+    parts = ("true", "false")
+    return "|".join(parts)
 
 
 @cache
@@ -75,7 +84,7 @@ def _build_regex_pattern_null() -> str:
     """Assume any string value from the null alias."""
     values = [str(x) for x in get_alias_null().names]
     ors = "|".join(x for x in values if x)
-    return f"(?:{ors})"
+    return rf"\b(?:{ors})\b"
 
 
 @cache
@@ -137,6 +146,7 @@ def _(value: str, alias: Optional[AliasResolver] = None) -> Any:
     return value
 
 
+@_coerce_implicit.register(bool)
 @_coerce_implicit.register(int)
 @_coerce_implicit.register(float)
 def _(value: Union[int, float], alias: Optional[AliasResolver] = None) -> int:

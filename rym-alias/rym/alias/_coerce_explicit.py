@@ -62,6 +62,7 @@ def coerce_explicit(
     type_: Union[str, Callable],
     value: Any,
     use_safe: bool = True,
+    _resolve_type: Optional[Callable] = None,
     **kwargs,
 ) -> Any:
     """Coerce given value to given type.
@@ -76,7 +77,8 @@ def coerce_explicit(
     Raises:
 
     """
-    converter = resolve_type(type_, use_safe=use_safe)
+    _resolve_type = _resolve_type or resolve_type
+    converter = _resolve_type(type_, use_safe=use_safe)
     return converter(value, **kwargs)
 
 
@@ -85,7 +87,12 @@ def coerce_explicit(
 
 
 @cache
-def resolve_type(value: Union[str, Callable], use_safe: bool = True) -> Callable:
+def resolve_type(
+    value: Union[str, Callable],
+    use_safe: bool = True,
+    _resolver: Optional[AliasResolver] = None,
+    _safe_resolver: Optional[AliasResolver] = None,
+) -> Callable:
     """Return callable for given value.
 
     Arguments:
@@ -96,27 +103,39 @@ def resolve_type(value: Union[str, Callable], use_safe: bool = True) -> Callable
     Raises:
         InvalidConverterError if unknown converter requested.
     """
-    type_ = _resolve_type(value)  # may raise
+    type_ = _resolve_type(value, _resolver=_resolver)  # may raise
     if use_safe:
-        type_ = get_safe_type_resolver().identify(type_, type_)
+        _safe_resolver = _safe_resolver or get_safe_type_resolver()
+        type_ = _safe_resolver.identify(type_, type_)
     return type_
 
 
 @singledispatch
-def _resolve_type(value: Any) -> Callable:
+def _resolve_type(
+    value: Any,
+    _resolver: Optional[AliasResolver] = None,
+) -> Callable:
     """Coerce given value using specified converter."""
+    if value is None:
+        return None
     raise InvalidConverterError(value)
 
 
 @_resolve_type.register(abc.Callable)
-def _(value: Callable) -> Callable:
+def _(
+    value: Callable,
+    _resolver: Optional[AliasResolver] = None,
+) -> Callable:
     return value
 
 
 @_resolve_type.register(str)
-def _(value: str) -> Callable:
-    resolver = get_type_resolver()  # type: AliasResolver
-    return resolver.identify(value)
+def _(
+    value: str,
+    _resolver: Optional[AliasResolver] = None,
+) -> Callable:
+    _resolver = _resolver or get_type_resolver()  # type: AliasResolver
+    return _resolver.identify(value)
 
 
 # resolvers
@@ -161,6 +180,7 @@ def get_type_resolver() -> AliasResolver:
         {float: ["float", "double", "number", "scientific"]},
         {json.loads: ["json.loads"]},
         {json.dumps: ["json.dumps"]},
+        {str: ["str", "string"]},
         get_alias_iterable(),
     )
 
