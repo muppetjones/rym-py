@@ -158,7 +158,7 @@ def get_type_resolver() -> AliasResolver:
         {None: ["null", "None", None]},
         {bool: ["bool", "boolean"]},
         {int: ["int", "integer"]},
-        {float: ["float", "double", "number"]},
+        {float: ["float", "double", "number", "scientific"]},
         {json.loads: ["json.loads"]},
         {json.dumps: ["json.dumps"]},
         get_alias_iterable(),
