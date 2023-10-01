@@ -49,6 +49,15 @@ class TestCoerceExplicit(ThisTestCase):
 class TestResolveType(ThisTestCase):
     """Test function."""
 
+    def test_raises_for_invalid_type(self) -> None:
+        tests = [
+            42,
+        ]
+        for given in tests:
+            with self.subTest(given):
+                with self.assertRaisesRegex(ValueError, str(given)):
+                    MOD.resolve_type(given)
+
     def test_returns_safe_type_by_default(self) -> None:
         tests = [
             # (expected, given)

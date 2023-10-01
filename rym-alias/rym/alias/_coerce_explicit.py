@@ -203,13 +203,6 @@ def get_safe_type_resolver() -> AliasResolver:
     )
 
 
-def get_default_value_aliases() -> AliasResolver:
-    return AliasResolver.build(
-        get_alias_null(),
-        get_alias_bool(),
-    )
-
-
 # Safe Types
 # ======================================================================
 #   These functions are intended to support edge cases from accidental

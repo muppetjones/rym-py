@@ -20,9 +20,11 @@ class TestCoerceImplicit(ThisTestCase):
     def test_implicit_bool(self) -> None:
         tests = [
             # (expected, given)
+            (True, True),
             (True, "TRUE"),
             (True, "True"),
             (True, "true"),
+            (False, False),
             (False, "FALSE"),
             (False, "False"),
             (False, "false"),
@@ -73,6 +75,12 @@ class TestCoerceImplicit(ThisTestCase):
             with self.subTest(given):
                 found = MOD.coerce_implicit(given)
                 self.assertEqual(expected, found)
+
+    def test_implicit_string(self) -> None:
+        given = "foo"
+        expected = "foo"
+        found = MOD.coerce_implicit(given)
+        self.assertEqual(expected, found)
 
 
 # __END__

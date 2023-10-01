@@ -12,6 +12,7 @@ from unittest import TestCase, mock, skipIf
 import rym.alias as MOD
 from rym.alias import variation
 from rym.alias._alias import Alias, _default_transforms
+from rym.alias._aliasfrozen import FrozenAlias
 from rym.alias._aliasresolver import toml, yaml  # if installed
 
 LOGGER = logging.getLogger(__name__)
@@ -213,8 +214,13 @@ class TestResolveAlias(ThisTestCase):
         given = [
             Alias("a", None, None),
             Alias("b", None, None),
+            FrozenAlias.build("c", None, None),
         ]
-        expected = given[:]
+        expected = [
+            Alias("a", None, None),
+            Alias("b", None, None),
+            Alias("c", ["c"], None),
+        ]
         found = MOD.resolve_aliases(given)
         self.assertEqual(expected, found)
 
