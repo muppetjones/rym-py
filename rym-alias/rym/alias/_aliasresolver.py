@@ -182,7 +182,7 @@ class AliasResolver:
         logger.debug("Lost aliases due to collisions: %s", pformat(lost))
         return sorted(collisions)
 
-    def identify(self, value: str) -> str:
+    def identify(self, value: str, default: Any = _DEFAULT) -> str:
         """Return identity for the given alias value.
 
         Arguments:
@@ -194,7 +194,11 @@ class AliasResolver:
         """
         self._attempts[value] += 1  # know which aliases are used / needed
         idx = self._lookup.get(value)  # faster than itrable and try:except
-        if idx is None:
+        if idx is not None:
+            ...  # handle below
+        elif _DEFAULT != default:
+            return default
+        else:
             raise AliasError(value)
         return self.aliases[idx].identity
 

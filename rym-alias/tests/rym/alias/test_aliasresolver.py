@@ -119,9 +119,12 @@ class TestFindCollisions(ThisTestCase):
     def test_returns_iterable(self):
         tests = [
             # (expected, given)
-            (["FOO", "foo"], [[Alias("foo", ["bar"])], [Alias("FOO", ["baz"])]]),
             (
-                ["BAR", "bar"],
+                ["FOO", "Foo", "foo"],
+                [[Alias("foo", ["bar"])], [Alias("FOO", ["baz"])]],
+            ),
+            (
+                ["BAR", "Bar", "bar"],
                 [Alias("foo", ["Bar", "ick"]), Alias("meh", ["bar"])],
             ),
         ]
@@ -145,6 +148,17 @@ class TestIdentify(ThisTestCase):
         subject = MOD.AliasResolver.build(**given)
         with self.assertRaisesRegex(KeyError, "foo"):
             subject.identify("foo")
+
+    def test_uses_default_if_given(self) -> None:
+        kwds = {
+            "identity": "fooBar",
+            "aliases": ["FOO_bar"],
+        }
+        subject = MOD.AliasResolver.build(kwds)
+        default = None
+        expected = default
+        found = subject.identify("foo", default)
+        self.assertEqual(expected, found)
 
     # section
     # ----------------------------------
@@ -306,7 +320,9 @@ class TestResolveAliasEncoding(ThisTestCase):
     @skipIf(not yaml, "yaml not intalled")
     def test_yaml(self):
         with self.subTest("load aliases from root"):
-            self.assert_loads_aliases_from_root(suffix=".yaml", encode=yaml.safe_dump)
+            self.assert_loads_aliases_from_root(
+                suffix=".yaml", encode=yaml.safe_dump
+            )
 
     # section
     # ----------------------------------
