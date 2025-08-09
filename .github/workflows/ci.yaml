@@ -25,12 +25,16 @@ jobs:
           # If it's not configured, the repository default branch is used.
           base: ${{ github.ref }}
           filters: |
-            rym-lpath:
-              - 'rym-lpath/**'
-              - ".github/workflows/ci*.yaml"
-              - ".github/workflows/python*.yaml"
             rym-alias:
               - 'rym-alias/**'
+              - ".github/workflows/ci*.yaml"
+              - ".github/workflows/python*.yaml"
+            rym-cx:
+              - 'rym-cx/**'
+              - ".github/workflows/ci*.yaml"
+              - ".github/workflows/python*.yaml"
+            rym-lpath:
+              - 'rym-lpath/**'
               - ".github/workflows/ci*.yaml"
               - ".github/workflows/python*.yaml"
             rym-token:
