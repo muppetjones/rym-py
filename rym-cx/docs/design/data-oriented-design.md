@@ -66,3 +66,6 @@ though I do find some uv decisions annoying (namely how it handles virtual
 environments -- of course I prefer my supercilious pattern, and poetry and pdm
 let me prefer it more easily). I like pdm/hatch, but uv is a little easier
 to manage, especially with workspaces. However, it's not a high priority.
+
+I _really_ want to use python 3.11 features, but I really do _not_ want to mess
+with the CI/CD to support different versions across the library.

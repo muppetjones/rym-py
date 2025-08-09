@@ -4,9 +4,8 @@
 import logging
 from typing import Iterable, TypeVar
 from unittest import TestCase
-from uuid import uuid3
 
-from rym.cx import cx
+from rym import cx
 
 T = TypeVar("T")
 
@@ -105,7 +104,7 @@ class TestBehavior(ThisTestCase):
         tests = [Health, Location, Plant, Player, Monster]
         for component in tests:
             with self.subTest(component.__name__):
-                expected = uuid3("component", component.__name__)
+                expected = cx.core.generate_record_uid("component", component.__name__)
                 found = cx.get_component_id(component)
                 self.assertEqual(expected, found)
 
@@ -114,7 +113,7 @@ class TestBehavior(ThisTestCase):
         tests = [Animate, Inanimate]
         for archetype in tests:
             with self.subTest(archetype.__name__):
-                expected = uuid3("archetype", archetype.__name__)
+                expected = cx.core.generate_record_uid("archetype", archetype.__name__)
                 found = cx.get_archetype_id(archetype)
                 self.assertEqual(expected, found)
 
@@ -123,8 +122,8 @@ class TestBehavior(ThisTestCase):
         tests = [Plant, Player, Monster]
         for entity in tests:
             with self.subTest(entity.__name__):
-                expected = uuid3("entity", entity.__name__)
-                found = cx.get_archetype_id(entity)
+                expected = cx.core.generate_record_uid("entity", entity.__name__)
+                found = cx.get_entity_id(entity)
                 self.assertEqual(expected, found)
 
     def test_basic_ecs(self) -> None:

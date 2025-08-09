@@ -41,6 +41,7 @@ minversion = "7.0"
 addopts = [
     "-ra -vvv",
     "--cov=rym",
+    "--cov-report term-missing",
     "--import-mode=importlib",
 ]
 pythonpath = ["."]
