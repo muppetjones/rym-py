@@ -6,7 +6,7 @@ from typing import Iterable, TypeVar
 from unittest import TestCase
 
 from rym import cx
-from rym.cx.core import _system
+from rym.cx.core import _global
 
 T = TypeVar("T")
 
@@ -21,11 +21,11 @@ LOGGER = logging.getLogger(__name__)
 
 
 def setUpModule() -> None:
-    _system.clear_registry()
+    _global.clear_catalog()
 
 
 def tearDownModule() -> None:
-    _system.clear_registry()
+    _global.clear_catalog()
 
 
 # ----------------------------------

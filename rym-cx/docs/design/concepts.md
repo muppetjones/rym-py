@@ -14,10 +14,10 @@ of as a specification with which an entity may be grouped or evaluated.
 A unique definition of components used to define a concept. An entity may
 conform to multiple archetypes.
 
-## Registry
+## Catalog
 
-A registry tracks the definitions of archetypes, components, or entities.
+A registry that tracks the definitions of archetypes, components, or entities.
 
-## Index
+## Inventory
 
-An index tracks instantiations of archetypes, components, or entities.
+A registry that tracks instantiations of archetypes, components, or entities.

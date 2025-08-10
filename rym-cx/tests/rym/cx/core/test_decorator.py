@@ -6,7 +6,7 @@ from unittest import IsolatedAsyncioTestCase
 from unittest.mock import Mock
 
 import rym.cx.core.decorator as MOD
-from rym.cx.core import _system
+from rym.cx.core import _global
 from rym.cx.core.registrar import RegisterRecord
 
 LOGGER = logging.getLogger(__name__)
@@ -16,17 +16,17 @@ class ThisTestCase(IsolatedAsyncioTestCase):
     """Base test case for the module."""
 
     async def asyncSetUp(self) -> None:
-        await _system.clear_registry(Mock())
-        self.addCleanup(_system.clear_registry, Mock())
+        await _global.clear_catalog(Mock())
+        self.addCleanup(_global.clear_catalog, Mock())
 
 
-class TestAddToRegistry(ThisTestCase):
+class TestAddToCatalog(ThisTestCase):
     """Test decorator."""
 
     def test_raises_if_missing_parameters(self) -> None:
         with self.assertRaises(TypeError):
 
-            @MOD.add_to_registry
+            @MOD.add_to_catalog
             class Foo:
                 ...
 
@@ -40,18 +40,18 @@ class TestAddToRegistry(ThisTestCase):
             "name": Foo.__name__,
         }
 
-        wrapped = MOD.add_to_registry(Foo, namespace="example")
+        wrapped = MOD.add_to_catalog(Foo, namespace="example")
         found = {
             "name": wrapped.__name__,
         }
         self.assertEqual(expected, found)
 
-    async def test_adds_to_global_registry(self) -> None:
-        @MOD.add_to_registry(namespace="example")
+    async def test_adds_to_global_catalog(self) -> None:
+        @MOD.add_to_catalog(namespace="example")
         class Foo:
             ...
 
-        subject = _system.get_registry()
+        subject = _global.get_catalog()
         found = await subject.get(Foo)
         expected = RegisterRecord.new("example", Foo)
         self.assertEqual(expected, found)
@@ -60,12 +60,12 @@ class TestAddToRegistry(ThisTestCase):
 class TestComponentDecorator(ThisTestCase):
     """Test decorator."""
 
-    async def test_adds_to_registry_under_namespace(self) -> None:
+    async def test_adds_to_catalog_under_namespace(self) -> None:
         @MOD.component
         class Foo:
             ...
 
-        subject = _system.get_registry()
+        subject = _global.get_catalog()
         found = await subject.get(Foo)
         expected = RegisterRecord.new("component", Foo)
         self.assertEqual(expected, found)
@@ -74,12 +74,12 @@ class TestComponentDecorator(ThisTestCase):
 class TestEntityDecorator(ThisTestCase):
     """Test decorator."""
 
-    async def test_adds_to_registry_under_namespace(self) -> None:
+    async def test_adds_to_catalog_under_namespace(self) -> None:
         @MOD.entity
         class Foo:
             ...
 
-        subject = _system.get_registry()
+        subject = _global.get_catalog()
         found = await subject.get(Foo)
         expected = RegisterRecord.new("entity", Foo)
         self.assertEqual(expected, found)

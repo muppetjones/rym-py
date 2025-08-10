@@ -9,9 +9,10 @@ NOTE: This module is a bit of a smell. Globals and singletons can get messy
     and index to track entities and instances, etc. The best we can do (for now)
     is make sure it's at least safe.
 
-NOTE: Not a big fan of "_system" as a name, but "app" may imply that this is the
-    entrypoint or driver. Most users shouldn't need to use this directly, and
-    "system" implies lower level functionality... so it works.
+NOTE: Not a big fan of "_global" as a name, but it is apt.
+    Conversely, "app" may imply that this is the entrypoint or driver,
+    and "system" is part of ECS.
+    Most users shouldn't need to use this directly.
 """
 
 import logging
@@ -19,14 +20,14 @@ from typing import Optional
 
 from .registrar import Registrar
 
-_REGISTRAR = None  # type: Registrar
+_CATALOG = None  # type: Registrar
 
 
-async def clear_registry(logger: Optional[logging.Logger] = None) -> None:
-    """Clear the current registry and registry instance.
+async def clear_catalog(logger: Optional[logging.Logger] = None) -> None:
+    """Clear the current global catalog and catalog instance.
 
-    In case someone is storing a reference to the registry, clear the stored registrar.
-    In case someone is using the variable directly, clear the variable, too.
+    In case someone is storing a reference to the catalog, clear the instance.
+    In case someone is using the global variable directly, clear the variable, too.
 
     NOTE: This pattern is technically fragile. We could just use the same one
         or create a new global instance; however, that could lead to undefined
@@ -36,14 +37,14 @@ async def clear_registry(logger: Optional[logging.Logger] = None) -> None:
     NOTE: Even more technically, this pattern is not thread safe or multiproc safe.
         Creating a new instance in the middle of execution will result in the
         shared instance being unavailable to child threads or procesesses.
-        While reusing the same registrar wouldn't guarantee safety, if the instance
+        While reusing the same catalog wouldn't guarantee safety, if the instance
         is created early enough, it _may_ be shared automatically, though likely
         it would be a separate instance, which would be bad anyway.
 
     NOTE: More technically still, it's a moot point. This function is largely
-        intended for testing, and the registry should not be modified at runtime.
+        intended for testing, and the catalog should not be modified at runtime.
         (The index will be a separate matter). In a worst case scenario, we'd
-        use this to reset and then rebuild the registry, but at that point we
+        use this to reset and then rebuild the catalog, but at that point we
         need much more sophisticated error handling anyway.
 
     TODO: Make this thread and multiprocess safe.
@@ -53,33 +54,32 @@ async def clear_registry(logger: Optional[logging.Logger] = None) -> None:
     Returns:
         None
     """
-    global _REGISTRAR
-    if not _REGISTRAR:
-        return  # EARLY EXIT: no registry -- ignore
+    global _CATALOG
+    if not _CATALOG:
+        return  # EARLY EXIT: no catalog -- ignore
     logger = logger or logging.getLogger(__name__)
-    # lol, can you imagine the panic if we said "clearing system registry"?
-    logger.warning("Clearing cx registry")
-    await _REGISTRAR.clear()
-    _REGISTRAR = None
+
+    logger.warning("Clearing cx catalog")
+    await _CATALOG.clear()
+    _CATALOG = None
 
 
-def get_registry() -> Registrar:
-    """Return a static registrar.
+def get_catalog() -> Registrar:
+    """Return a static catalog.
 
-    NOTE: Registrar vs. registry.
-        This function will return the same registrar every time,
-        i.e., the _system_ registry. Multiple registrar (... registrars?)
-        may exist at any given time, but only one is the system registry.
+    This function will return the same registrar every time,
+    i.e., the _global_ catalog. Multiple registrar instances may exist at any
+    given time, but only one is the global catalog.
 
     Arguments:
         None
     Returns:
-        A static registrar instance.
+        A static catalog instance.
     """
-    global _REGISTRAR
-    if not _REGISTRAR:
-        _REGISTRAR = Registrar()
-    return _REGISTRAR
+    global _CATALOG
+    if not _CATALOG:
+        _CATALOG = Registrar()
+    return _CATALOG
 
 
 # __END__

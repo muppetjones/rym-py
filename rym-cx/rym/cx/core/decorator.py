@@ -8,7 +8,7 @@ That's why you never see "pandas.DataFrame".
 This module defines class decorators for "component" and "entity". These are imported
 into the top module to make usage easy -- and short.
 
-NOTE: This module imports _system, which imports registrar. Be mindful of import chaos.
+NOTE: This module imports _global, which imports catalog. Be mindful of import chaos.
 
 NOTE: Archetype doesn't have a decorator. It _could_, but that would limit
     features and subvert expectations.
@@ -18,7 +18,7 @@ NOTE: Archetype doesn't have a decorator. It _could_, but that would limit
 from functools import partial
 from typing import Optional, TypeVar
 
-from . import _system
+from . import _global
 
 T = TypeVar("T")
 
@@ -37,7 +37,7 @@ def component(klass: Optional[T] = None) -> T:
         ...     current: int
 
     """
-    return add_to_registry(klass, namespace="component")
+    return add_to_catalog(klass, namespace="component")
 
 
 def entity(klass: Optional[T] = None) -> T:
@@ -50,21 +50,21 @@ def entity(klass: Optional[T] = None) -> T:
         ...     health: Health
 
     """
-    return add_to_registry(klass, namespace="entity")
+    return add_to_catalog(klass, namespace="entity")
 
 
 # Low-level decorators
 # ======================================================================
 
 
-def add_to_registry(
+def add_to_catalog(
     klass: Optional[T] = None,
     *,
     namespace: Optional[str] = None,
 ) -> T:
     """Decorator used to add given klass to the global registry.
 
-    NOTE: Registering an object adds __cx_reg_uid__ property to the object.
+    NOTE: Registering an object adds __cx_cat_uid__ property to the object.
 
     NOTE: Both parameters are required. They are optional to allow decorator kwargs.
 
@@ -79,12 +79,12 @@ def add_to_registry(
         TypeError if both parameters are not provided.
     """
     if namespace and not klass:
-        return partial(add_to_registry, namespace=namespace)
+        return partial(add_to_catalog, namespace=namespace)
 
     if not (namespace and klass):
         raise TypeError("namespace is required; provide as kwarg via decorator")
 
-    registry = _system.get_registry()
+    registry = _global.get_catalog()
     registry.add(namespace, klass)
 
     return klass

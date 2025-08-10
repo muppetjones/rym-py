@@ -50,7 +50,7 @@ class TestGenerateUid(ThisTestCase):
         e = MOD.generate_uid("x", "Foo")
 
         self.assertEqual(a, d)
-        self.assertEqual(a, e)  # same name! let registrar handle collisions
+        self.assertEqual(a, e)  # same name! let catalog handle collisions
         self.assertNotEqual(a, b)
         self.assertNotEqual(b, c)
 

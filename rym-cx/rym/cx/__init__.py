@@ -6,8 +6,8 @@ from . import core
 """Easy access to decorators.
 
 See also:
-    rym.cx.core.registrar
-    rym.cx.core._system
+    rym.cx.core.catalog
+    rym.cx.core._global
     rym.cx.core.decorators
 """
 from .core.decorator import component, entity
