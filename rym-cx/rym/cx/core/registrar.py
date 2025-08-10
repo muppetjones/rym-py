@@ -20,15 +20,15 @@ class Record(NamedTuple):
     TODO: Consider using __hash__ instead of __name__.
     """
 
-    item: Any
     namespace: str
+    value: Any
     uid: UUID
 
     @classmethod
-    def new(cls, item: Any, namespace: str) -> "Record":
+    def new(cls, namespace: str, value: Any) -> "Record":
         """Create an instance."""
-        uid = generate_uid(namespace, item)
-        return cls(item=item, namespace=namespace, uid=uid)
+        uid = generate_uid(namespace, value)
+        return cls(value=value, namespace=namespace, uid=uid)
 
 
 @dcs.dataclass
@@ -61,7 +61,7 @@ class Registrar:
 
     _lock: ClassVar[asyncio.Lock] = asyncio.Lock()
 
-    async def add_async(self, value: Any, namespace: str) -> Record:
+    async def add_async(self, namespace: str, value: Any) -> Record:
         """Add given item to the register.
 
         Same functionality as add(), but async. Locks the object.
@@ -71,9 +71,9 @@ class Registrar:
         """
         async with self._lock:
             # Lock to prevent race condition between checking and adding the item.
-            self.add(value, namespace)
+            self.add(namespace, value)
 
-    def add(self, value: Any, namespace: str) -> Record:
+    def add(self, namespace: str, value: Any) -> Record:
         """Add given item to the register.
 
         TODO: Use rym.alias.AliasResolver.
@@ -88,7 +88,7 @@ class Registrar:
             NonUniqueValueError (ValueError) if the (value, namespace) are
             already registered.
         """
-        record = Record.new(value, namespace)
+        record = Record.new(namespace, value)
 
         # Prevent addition of items with name conflicts but ignore known items.
         existing = self.register.get(record.uid)
@@ -166,13 +166,13 @@ class Registrar:
 
         if not uid:
             # NOTE: Could check error or msg instead, but we only care if we have a uid.
-            raise error(f"{msg} ({value}, {namespace})")  # EARLY EXIT: no match!
+            raise error(f"{msg} ({namespace}, {value})")  # EARLY EXIT: no match!
 
         try:
             return self.register[uid]
         except KeyError:
             msg = "unknown uid; rebuild lookup"
-            raise InvalidStateError(f"{msg} ({value}, {namespace})")
+            raise InvalidStateError(f"{msg} ({namespace}, {value})")
 
 
 # __END__

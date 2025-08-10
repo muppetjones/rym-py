@@ -4,14 +4,12 @@
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/rym-token.svg)](https://pypi.org/project/rym-cx)
 [![License: MIT](https://img.shields.io/badge/license-MIT-C06524)](https://github.com/muppetjones/rym-py/blob/main/LICENSE.txt)
 
-A sandbox for building a data index.
-
 > [!IMPORTANT]  
 > This is a WIP and is not intended for general use.
 
-> [!NOTE]  
-> For a description of the goals and concepts used in this project, see the
-> [design docs](/docs/design)
+An ECS implementation in python. This package is a proof of concept and is not
+intended to provide a fully featured ECS. For a description of the goals and concepts
+used in this project, see the [design docs](/docs/design).
 
 ## Testing
 

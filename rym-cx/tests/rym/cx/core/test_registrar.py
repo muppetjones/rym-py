@@ -41,8 +41,8 @@ class TestAddAsync(ThisTestCase):
 
         with self.subTest("async adds each item"):
             coro = [
-                subject.add_async(Foo, namespace="x"),
-                subject.add_async(Foo, namespace="y"),
+                subject.add_async(value=Foo, namespace="x"),
+                subject.add_async(value=Foo, namespace="y"),
             ]
             await asyncio.gather(*coro)
             expected = {
@@ -56,8 +56,8 @@ class TestAddAsync(ThisTestCase):
             Meh.__name__ = "Bar"
             with self.assertRaisesRegex(ValueError, "value exists in namespace"):
                 coro = [
-                    subject.add_async(Bar, namespace="x"),
-                    subject.add_async(Meh, namespace="x"),
+                    subject.add_async(value=Bar, namespace="x"),
+                    subject.add_async(value=Meh, namespace="x"),
                 ]
                 await asyncio.gather(*coro)
                 logging.critical(pformat(subject.register))
@@ -75,27 +75,27 @@ class TestAdd(ThisTestCase):
 
         Meh.__name__ = "Foo"
         subject = MOD.Registrar()
-        record = subject.add(Foo, namespace="X")
+        record = subject.add(value=Foo, namespace="X")
 
         with self.subTest("igore true duplicates"):
-            subject.add(Foo, namespace=record.namespace)
+            subject.add(value=Foo, namespace=record.namespace)
 
         with self.subTest("disallow intra-namespace commonality"):
             with self.assertRaises(ValueError):
-                subject.add(Meh, namespace=record.namespace)
+                subject.add(value=Meh, namespace=record.namespace)
 
         with self.subTest("allow inter-namespace commonality"):
-            subject.add(Meh, namespace="Y")
+            subject.add(value=Meh, namespace="Y")
 
     async def test_stores_record(self) -> None:
         class Foo:
             ...
 
         subject = MOD.Registrar()
-        subject.add(Foo, namespace="X")
+        subject.add(value=Foo, namespace="X")
 
         # NOTE: The record uid is auto-generated and must match.
-        record = MOD.Record.new(item=Foo, namespace="X")
+        record = MOD.Record.new(value=Foo, namespace="X")
         expected = {record.uid: record}
         found = subject.register
         self.assertEqual(expected, found)
@@ -105,7 +105,7 @@ class TestAdd(ThisTestCase):
             ...
 
         subject = MOD.Registrar()
-        record = subject.add(Foo, namespace="X")
+        record = subject.add(value=Foo, namespace="X")
 
         expected = record.uid
         found = Foo.__cx_uid__
@@ -123,8 +123,8 @@ class TestClear(ThisTestCase):
             ...
 
         subject = MOD.Registrar()
-        subject.add(Foo, namespace="X")
-        subject.add(Bar, namespace="Y")
+        subject.add(value=Foo, namespace="X")
+        subject.add(value=Bar, namespace="Y")
 
         # control: make sure the items were added
         assert bool(subject.register) is not False
@@ -147,7 +147,7 @@ class TestGet(ThisTestCase):
             ...
 
         subject = MOD.Registrar()
-        subject.add(Foo, namespace="X")
+        subject.add(value=Foo, namespace="X")
 
         tests = [
             # (err, given)
@@ -165,18 +165,18 @@ class TestGet(ThisTestCase):
             ...
 
         subject = MOD.Registrar()
-        record = subject.add(Foo, namespace="X")
+        record = subject.add(value=Foo, namespace="X")
 
         with self.subTest("corrupted registry"):
             # MUST test first
             del subject.register[record.uid]
             with self.assertRaisesRegex(RuntimeError, "unknown uid"):
-                await subject.get(Foo)
+                await subject.get(value=Foo)
 
         with self.subTest("corrupted lookup"):
             del subject.lookup[Foo][record.namespace]
             with self.assertRaisesRegex(RuntimeError, "orphaned value"):
-                await subject.get(Foo)
+                await subject.get(value=Foo)
 
     async def test_behavior_with_namespace(self) -> None:
         class FooA:
@@ -188,11 +188,11 @@ class TestGet(ThisTestCase):
         FooA.__name__ = "Foo"
         FooB.__name__ = "Foo"
         subject = MOD.Registrar()
-        record_a = subject.add(FooA, namespace="A")
-        record_b = subject.add(FooB, namespace="B")
+        record_a = subject.add(value=FooA, namespace="A")
+        record_b = subject.add(value=FooB, namespace="B")
 
         with self.subTest("namespace not required if given unique"):
-            found = await subject.get(FooA)
+            found = await subject.get(value=FooA)
             expected = record_a
             self.assertEqual(expected, found)
 
@@ -210,7 +210,7 @@ class TestGet(ThisTestCase):
             ...
 
         subject = MOD.Registrar()
-        record = subject.add(Foo, namespace="X")
+        record = subject.add(value=Foo, namespace="X")
 
         tests = [
             Foo,
