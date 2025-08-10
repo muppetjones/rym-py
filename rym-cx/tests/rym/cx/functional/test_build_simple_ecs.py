@@ -6,6 +6,7 @@ from typing import Iterable, TypeVar
 from unittest import TestCase
 
 from rym import cx
+from rym.cx.core import _system
 
 T = TypeVar("T")
 
@@ -17,6 +18,15 @@ LOGGER = logging.getLogger(__name__)
 #   test access to the entities and compontents. We _could_ make one big
 #   test case, but that would be difficult to manage (and smelly).
 # tl;dr: Define basic classes here. Test usage below.
+
+
+def setUpModule() -> None:
+    _system.clear_registry()
+
+
+def tearDownModule() -> None:
+    _system.clear_registry()
+
 
 # ----------------------------------
 # Kate is designing a simple game.
@@ -90,10 +100,6 @@ def get_injured(entities: Iterable[T]) -> Iterable[T]:
 
 class ThisTestCase(TestCase):
     """Base test case for the module."""
-
-    def setUp(self) -> None:
-        cx.clear_all()
-        self.addCleanup(cx.clear_all)
 
 
 class TestBehavior(ThisTestCase):

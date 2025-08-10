@@ -54,6 +54,8 @@ async def clear_registry(logger: Optional[logging.Logger] = None) -> None:
         None
     """
     global _REGISTRAR
+    if not _REGISTRAR:
+        return  # EARLY EXIT: no registry -- ignore
     logger = logger or logging.getLogger(__name__)
     # lol, can you imagine the panic if we said "clearing system registry"?
     logger.warning("Clearing cx registry")

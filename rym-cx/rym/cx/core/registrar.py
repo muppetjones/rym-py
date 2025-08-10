@@ -28,7 +28,7 @@ class Record(NamedTuple):
     def new(cls, namespace: str, value: Any) -> "Record":
         """Create an instance."""
         uid = generate_uid(namespace, value)
-        return cls(value=value, namespace=namespace, uid=uid)
+        return cls(namespace=namespace, value=value, uid=uid)
 
 
 @dcs.dataclass

@@ -35,6 +35,12 @@ class TestClearRegistry(ThisTestCase):
             two = MOD.get_registry()
             assert one is not two
 
+    async def test_repeated_clear(self) -> None:
+        _ = MOD.get_registry()  # make sure we have something to clear
+        await MOD.clear_registry(logger=Mock())
+        await MOD.clear_registry(logger=Mock())  # should not raise
+        await MOD.clear_registry(logger=Mock())  # should not raise
+
 
 class TestGetRegistry(ThisTestCase):
     """Test function."""
