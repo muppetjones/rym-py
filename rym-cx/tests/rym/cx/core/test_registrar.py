@@ -1,29 +1,72 @@
 #!/usr/bin/env python3
 """Test the registry class."""
 
-from unittest import TestCase
+import asyncio
+import logging
+from pprint import pformat
+from unittest import IsolatedAsyncioTestCase
 
 import rym.cx.core.registrar as MOD
+from rym.cx.core import identifier
 
 
-class ThisTestCase(TestCase):
+class ThisTestCase(IsolatedAsyncioTestCase):
     """Base test case for the module."""
 
 
 class TestInit(ThisTestCase):
     """Test class init and properties."""
 
-    def test_initializes_with_empty_registrar(self) -> None:
+    async def test_initializes_with_empty_registrar(self) -> None:
         subject = MOD.Registrar()
         expected = {}
         found = subject.register
         self.assertEqual(expected, found)
 
 
+class TestAddAsync(ThisTestCase):
+    """Test coroutine."""
+
+    async def test_behavior(self) -> None:
+        class Foo:
+            ...
+
+        class Bar:
+            ...
+
+        class Meh:
+            ...
+
+        subject = MOD.Registrar()
+
+        with self.subTest("async adds each item"):
+            coro = [
+                subject.add_async(Foo, namespace="x"),
+                subject.add_async(Foo, namespace="y"),
+            ]
+            await asyncio.gather(*coro)
+            expected = {
+                identifier.generate_uid("x", Foo),
+                identifier.generate_uid("y", Foo),
+            }
+            found = set(subject.register.keys())
+            self.assertEqual(expected, found)
+
+        with self.subTest("raises for collision"):
+            Meh.__name__ = "Bar"
+            with self.assertRaisesRegex(ValueError, "value exists in namespace"):
+                coro = [
+                    subject.add_async(Bar, namespace="x"),
+                    subject.add_async(Meh, namespace="x"),
+                ]
+                await asyncio.gather(*coro)
+                logging.critical(pformat(subject.register))
+
+
 class TestAdd(ThisTestCase):
     """Test function."""
 
-    def test_raises_if_name_conflict_detected(self) -> None:
+    async def test_raises_if_name_conflict_detected(self) -> None:
         class Foo:
             ...
 
@@ -44,7 +87,7 @@ class TestAdd(ThisTestCase):
         with self.subTest("allow inter-namespace commonality"):
             subject.add(Meh, namespace="Y")
 
-    def test_stores_record(self) -> None:
+    async def test_stores_record(self) -> None:
         class Foo:
             ...
 
@@ -57,7 +100,7 @@ class TestAdd(ThisTestCase):
         found = subject.register
         self.assertEqual(expected, found)
 
-    def test_sets_uid_property(self) -> None:
+    async def test_sets_uid_property(self) -> None:
         class Foo:
             ...
 
@@ -65,14 +108,38 @@ class TestAdd(ThisTestCase):
         record = subject.add(Foo, namespace="X")
 
         expected = record.uid
-        found = Foo.__uid__
+        found = Foo.__cx_uid__
         self.assertEqual(expected, found)
+
+
+class TestClear(ThisTestCase):
+    """Test function."""
+
+    async def test_removes_all_registered_items(self) -> None:
+        class Foo:
+            ...
+
+        class Bar:
+            ...
+
+        subject = MOD.Registrar()
+        subject.add(Foo, namespace="X")
+        subject.add(Bar, namespace="Y")
+
+        # control: make sure the items were added
+        assert bool(subject.register) is not False
+        assert bool(subject.lookup) is not False
+
+        await subject.clear()
+
+        assert bool(subject.register) is False
+        assert bool(subject.lookup) is False
 
 
 class TestGet(ThisTestCase):
     """Test function."""
 
-    def test_raises_for_unknown_record(self) -> None:
+    async def test_raises_for_unknown_record(self) -> None:
         class Foo:
             ...
 
@@ -90,9 +157,9 @@ class TestGet(ThisTestCase):
         for err, kwargs in tests:
             with self.subTest(err=err, given=kwargs):
                 with self.assertRaisesRegex(ValueError, err):
-                    subject.get(**kwargs)
+                    await subject.get(**kwargs)
 
-    def test_raises_for_invalid_state(self) -> None:
+    async def test_raises_for_invalid_state(self) -> None:
         # NOTE: This test evaluates (what should be) an impossible state
         class Foo:
             ...
@@ -104,14 +171,14 @@ class TestGet(ThisTestCase):
             # MUST test first
             del subject.register[record.uid]
             with self.assertRaisesRegex(RuntimeError, "unknown uid"):
-                subject.get(Foo)
+                await subject.get(Foo)
 
         with self.subTest("corrupted lookup"):
             del subject.lookup[Foo][record.namespace]
             with self.assertRaisesRegex(RuntimeError, "orphaned value"):
-                subject.get(Foo)
+                await subject.get(Foo)
 
-    def test_behavior_with_namespace(self) -> None:
+    async def test_behavior_with_namespace(self) -> None:
         class FooA:
             ...
 
@@ -125,20 +192,20 @@ class TestGet(ThisTestCase):
         record_b = subject.add(FooB, namespace="B")
 
         with self.subTest("namespace not required if given unique"):
-            found = subject.get(FooA)
+            found = await subject.get(FooA)
             expected = record_a
             self.assertEqual(expected, found)
 
         with self.subTest("raise if no namespace and not unique"):
             with self.assertRaisesRegex(ValueError, "namespace required"):
-                _ = subject.get("foo")
+                _ = await subject.get("foo")
 
         with self.subTest("namespace resolve name conflict"):
-            found = subject.get("foo", namespace="B")
+            found = await subject.get("foo", namespace="B")
             expected = record_b
             self.assertEqual(expected, found)
 
-    def test_returns_record(self) -> None:
+    async def test_returns_record(self) -> None:
         class Foo:
             ...
 
@@ -154,7 +221,7 @@ class TestGet(ThisTestCase):
         expected = record
         for given in tests:
             with self.subTest(given):
-                found = subject.get(given)
+                found = await subject.get(given)
                 self.assertEqual(expected, found)
 
 

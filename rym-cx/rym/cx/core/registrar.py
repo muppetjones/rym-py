@@ -1,28 +1,16 @@
 #!/usr/bin/env python3
 """Define a registrar to track object definitions."""
 
+import asyncio
 import dataclasses as dcs
-import hashlib
 from collections import defaultdict
 from collections.abc import Hashable
-from functools import cache, partial
-from typing import Any, NamedTuple, Optional
-from uuid import UUID, uuid3
+from functools import partial
+from typing import Any, ClassVar, NamedTuple, Optional
+from uuid import UUID
 
 from .errors import InvalidStateError, NonUniqueValueError, UnregisteredValueError
-
-
-@cache
-def generate_namespace_hash(value: str) -> UUID:
-    """Generate constant namespace UUID.
-
-    UUID namespaces should be static, but we want to support modularity.
-    In an actual use case, we'll want to require predefined namespaces, but
-    for now, this is sufficient.
-    """
-    # Use shake to allow custom digest size
-    ns_hash = hashlib.shake_128(value.encode())
-    return UUID(bytes=ns_hash.digest(16))
+from .identifier import generate_uid
 
 
 class Record(NamedTuple):
@@ -39,32 +27,29 @@ class Record(NamedTuple):
     @classmethod
     def new(cls, item: Any, namespace: str) -> "Record":
         """Create an instance."""
-        uid = cls.generate_uid(namespace, item)
+        uid = generate_uid(namespace, item)
         return cls(item=item, namespace=namespace, uid=uid)
-
-    @staticmethod
-    def generate_uid(namespace: str, value: Any) -> UUID:
-        """Return a UUID3 from the given values.
-
-        Arguments:
-            item: A class or name of a class.
-            namespace: The registered namespace the item belongs to.
-        Returns:
-            A UUID3.
-        Raises:
-            None.
-            TODO: Better type checking.
-        """
-        name = getattr(value, "__name__", str(value))
-        ns = generate_namespace_hash(namespace)
-        return uuid3(ns, name)
 
 
 @dcs.dataclass
 class Registrar:
     """Store and index an item registry.
 
-    TODO: Add more here.
+    NOTE: Registered items _should_ be classes.
+    TODO: Add "remove" function. Removing from lookup adds complexity.
+    NOTE: At first glance, this class seems like a good target for async functionality:
+        Just lock when adding or clearing, and you're good go. However, the registrar
+        tracks the creation of classes not instances. Classes are registered during
+        import, and should be fully loaded prior to execution of the main program. As
+        such, the added complexity likely isn't worth it -- at least for add().
+        HOWEVER, if this is really meant to be used, we _need_ async. Define an async
+        wrapper around add() and make the other methods async.
+
+    Attributes:
+        register: Store registered items. Mapping of {UID: record}.
+        lookup: Store aliases of registered items. Provides a mapping from
+            the alias and namespace to the UID.
+        _lock: Class lock for async features. Do not use directly.
     """
 
     # NOTE: We could use more efficient data types for storage, e.g., deque,
@@ -73,6 +58,20 @@ class Registrar:
     lookup: dict[Any, dict[str, UUID]] = dcs.field(
         default_factory=partial(defaultdict, dict)
     )
+
+    _lock: ClassVar[asyncio.Lock] = asyncio.Lock()
+
+    async def add_async(self, value: Any, namespace: str) -> Record:
+        """Add given item to the register.
+
+        Same functionality as add(), but async. Locks the object.
+
+        See also:
+            add()
+        """
+        async with self._lock:
+            # Lock to prevent race condition between checking and adding the item.
+            self.add(value, namespace)
 
     def add(self, value: Any, namespace: str) -> Record:
         """Add given item to the register.
@@ -98,7 +97,7 @@ class Registrar:
         elif existing == record:
             pass  # duplicate; no action
         else:
-            raise NonUniqueValueError(f"Value already exists in namespace: {record}")
+            raise NonUniqueValueError(f"value exists in namespace: {record}")
 
         # Generate aliases for easier lookup
         # TODO: Consider using a singledispatch generator to build this.
@@ -112,11 +111,18 @@ class Registrar:
         for key in keys:
             self.lookup[key][namespace] = record.uid
         self.register[record.uid] = record
-        value.__uid__ = record.uid
+        setattr(value, "__cx_uid__", record.uid)
 
         return record
 
-    def get(self, value: Any, namespace: Optional[str] = None) -> Record:
+    async def clear(self) -> None:
+        """Clear registered items."""
+        # NOTE: Use default_factory for safety.
+        async with self._lock:
+            self.lookup = Registrar.__dataclass_fields__["lookup"].default_factory()
+            self.register = Registrar.__dataclass_fields__["register"].default_factory()
+
+    async def get(self, value: Any, namespace: Optional[str] = None) -> Record:
         """Retrieve registered record associated with given input.
 
         Arguments:
@@ -134,8 +140,8 @@ class Registrar:
         # Rather than a complex set of try:except or nested conditionals,
         # order the conditionals to allow a sort of fall through.
         # NOTE: Ideally, a unique match w/o namespace would not be the last conditional,
-        #   but we have to be sure we actually have matches first. Any other order,
-        #   and we'd be checking something twice.
+        #   but we have to be sure we actually have matches first. Any other order
+        #   would check something twice.
         msg = None
         error = None
         if uid:
@@ -159,6 +165,7 @@ class Registrar:
             uid = list(matched.values())[0]
 
         if not uid:
+            # NOTE: Could check error or msg instead, but we only care if we have a uid.
             raise error(f"{msg} ({value}, {namespace})")  # EARLY EXIT: no match!
 
         try:
