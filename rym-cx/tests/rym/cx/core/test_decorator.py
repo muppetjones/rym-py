@@ -6,7 +6,8 @@ from unittest import IsolatedAsyncioTestCase
 from unittest.mock import Mock
 
 import rym.cx.core.decorator as MOD
-from rym.cx.core import _system, registrar
+from rym.cx.core import _system
+from rym.cx.core.registrar import RegisterRecord
 
 LOGGER = logging.getLogger(__name__)
 
@@ -52,7 +53,35 @@ class TestAddToRegistry(ThisTestCase):
 
         subject = _system.get_registry()
         found = await subject.get(Foo)
-        expected = registrar.Record.new("example", Foo)
+        expected = RegisterRecord.new("example", Foo)
+        self.assertEqual(expected, found)
+
+
+class TestComponentDecorator(ThisTestCase):
+    """Test decorator."""
+
+    async def test_adds_to_registry_under_namespace(self) -> None:
+        @MOD.component
+        class Foo:
+            ...
+
+        subject = _system.get_registry()
+        found = await subject.get(Foo)
+        expected = RegisterRecord.new("component", Foo)
+        self.assertEqual(expected, found)
+
+
+class TestEntityDecorator(ThisTestCase):
+    """Test decorator."""
+
+    async def test_adds_to_registry_under_namespace(self) -> None:
+        @MOD.entity
+        class Foo:
+            ...
+
+        subject = _system.get_registry()
+        found = await subject.get(Foo)
+        expected = RegisterRecord.new("entity", Foo)
         self.assertEqual(expected, found)
 
 

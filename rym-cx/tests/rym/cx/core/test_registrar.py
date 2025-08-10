@@ -95,21 +95,27 @@ class TestAdd(ThisTestCase):
         subject.add(value=Foo, namespace="X")
 
         # NOTE: The record uid is auto-generated and must match.
-        record = MOD.Record.new(value=Foo, namespace="X")
+        record = MOD.RegisterRecord.new(value=Foo, namespace="X")
         expected = {record.uid: record}
         found = subject.register
         self.assertEqual(expected, found)
 
-    async def test_sets_uid_property(self) -> None:
+    async def test_sets_cx_reg_property(self) -> None:
         class Foo:
             ...
 
         subject = MOD.Registrar()
         record = subject.add(value=Foo, namespace="X")
 
-        expected = record.uid
-        found = Foo.__cx_uid__
-        self.assertEqual(expected, found)
+        with self.subTest("sets uid"):
+            expected = record.uid
+            found = Foo.__cx_reg_uid__
+            self.assertEqual(expected, found)
+
+        with self.subTest("sets namespace"):
+            expected = record.namespace
+            found = Foo.__cx_reg_namespace__
+            self.assertEqual(expected, found)
 
 
 class TestClear(ThisTestCase):

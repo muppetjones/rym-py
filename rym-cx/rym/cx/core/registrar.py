@@ -13,7 +13,7 @@ from .errors import InvalidStateError, NonUniqueValueError, UnregisteredValueErr
 from .identifier import generate_uid
 
 
-class Record(NamedTuple):
+class RegisterRecord(NamedTuple):
     """Aggregate attributes of a registered item.
 
     NOTE: KISS. We don't need the overhead of a dataclass for this.
@@ -25,7 +25,7 @@ class Record(NamedTuple):
     uid: UUID
 
     @classmethod
-    def new(cls, namespace: str, value: Any) -> "Record":
+    def new(cls, namespace: str, value: Any) -> "RegisterRecord":
         """Create an instance."""
         uid = generate_uid(namespace, value)
         return cls(namespace=namespace, value=value, uid=uid)
@@ -54,14 +54,14 @@ class Registrar:
 
     # NOTE: We could use more efficient data types for storage, e.g., deque,
     #   at the cost of additional lookup complexity. KISS for now.
-    register: dict[UUID, Record] = dcs.field(default_factory=dict)
+    register: dict[UUID, RegisterRecord] = dcs.field(default_factory=dict)
     lookup: dict[Any, dict[str, UUID]] = dcs.field(
         default_factory=partial(defaultdict, dict)
     )
 
     _lock: ClassVar[asyncio.Lock] = asyncio.Lock()
 
-    async def add_async(self, namespace: str, value: Any) -> Record:
+    async def add_async(self, namespace: str, value: Any) -> RegisterRecord:
         """Add given item to the register.
 
         Same functionality as add(), but async. Locks the object.
@@ -73,7 +73,7 @@ class Registrar:
             # Lock to prevent race condition between checking and adding the item.
             self.add(namespace, value)
 
-    def add(self, namespace: str, value: Any) -> Record:
+    def add(self, namespace: str, value: Any) -> RegisterRecord:
         """Add given item to the register.
 
         TODO: Use rym.alias.AliasResolver.
@@ -88,7 +88,7 @@ class Registrar:
             NonUniqueValueError (ValueError) if the (value, namespace) are
             already registered.
         """
-        record = Record.new(namespace, value)
+        record = RegisterRecord.new(namespace, value)
 
         # Prevent addition of items with name conflicts but ignore known items.
         existing = self.register.get(record.uid)
@@ -111,7 +111,8 @@ class Registrar:
         for key in keys:
             self.lookup[key][namespace] = record.uid
         self.register[record.uid] = record
-        setattr(value, "__cx_uid__", record.uid)
+        setattr(value, "__cx_reg_uid__", record.uid)
+        setattr(value, "__cx_reg_namespace__", record.namespace)
 
         return record
 
@@ -122,7 +123,7 @@ class Registrar:
             self.lookup = Registrar.__dataclass_fields__["lookup"].default_factory()
             self.register = Registrar.__dataclass_fields__["register"].default_factory()
 
-    async def get(self, value: Any, namespace: Optional[str] = None) -> Record:
+    async def get(self, value: Any, namespace: Optional[str] = None) -> RegisterRecord:
         """Retrieve registered record associated with given input.
 
         Arguments:

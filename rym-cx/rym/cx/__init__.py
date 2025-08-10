@@ -1,4 +1,16 @@
+# NOTE: Init files should be empty. Imports in this file simplify usage.
+#   BE MINDFUL OF WHAT YOU PUT IN HERE.
+
 from . import core
+
+"""Easy access to decorators.
+
+See also:
+    rym.cx.core.registrar
+    rym.cx.core._system
+    rym.cx.core.decorators
+"""
+from .core.decorator import component, entity
 
 
 """Placeholders for functional tests.
@@ -9,14 +21,6 @@ Define a set of placeholders to allow tests to run (and fail) more accurately.
 
 from unittest.mock import MagicMock
 
-
-def placeholder_decorator(klass):
-    return klass
-
-
-component = placeholder_decorator
-entity = placeholder_decorator
-archetype = placeholder_decorator
 
 Archetype = MagicMock()
 get_entities = MagicMock()

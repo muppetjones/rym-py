@@ -1,5 +1,18 @@
 #!/usr/bin/env python3
-"""Define core decorators."""
+"""Define core decorators.
+
+Who hates long names and imports in libraries?
+Probably everyone.
+That's why you never see "pandas.DataFrame".
+
+This module defines class decorators for "component" and "entity". These are imported
+into the top module to make usage easy -- and short.
+
+NOTE: This module imports _system, which imports registrar. Be mindful of import chaos.
+
+NOTE: Archetype doesn't have a decorator. It _could_, but that would limit
+    features and subvert expectations.
+"""
 
 
 from functools import partial
@@ -9,6 +22,40 @@ from . import _system
 
 T = TypeVar("T")
 
+# High-level decorators
+# ======================================================================
+
+
+def component(klass: Optional[T] = None) -> T:
+    """Decorate a component class.
+
+    Example:
+        >>> from rym import cx
+        >>> @cx.component
+        ... class Health:
+        ...     max_hp: int
+        ...     current: int
+
+    """
+    return add_to_registry(klass, namespace="component")
+
+
+def entity(klass: Optional[T] = None) -> T:
+    """Decorate a entity class.
+
+    Example:
+        >>> from rym import cx
+        >>> @cx.entity
+        ... class Monster:
+        ...     health: Health
+
+    """
+    return add_to_registry(klass, namespace="entity")
+
+
+# Low-level decorators
+# ======================================================================
+
 
 def add_to_registry(
     klass: Optional[T] = None,
@@ -17,7 +64,7 @@ def add_to_registry(
 ) -> T:
     """Decorator used to add given klass to the global registry.
 
-    NOTE: Registering an object adds __cx_uid__ property to the object.
+    NOTE: Registering an object adds __cx_reg_uid__ property to the object.
 
     NOTE: Both parameters are required. They are optional to allow decorator kwargs.
 

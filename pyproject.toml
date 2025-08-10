@@ -19,7 +19,7 @@ clean-dry = "find . -type f -name '*.py[co]' -o -type d -name __pycache__ -o -ty
 
 [tool.black]
 line-length = 83
-target-version = ["py38", "py39", "py310"]
+target-version = ["py38", "py39", "py310", "py311"]
 exclude = '''
 /(
     \.eggs
