@@ -15,10 +15,11 @@ NOTE: Archetype doesn't have a decorator. It _could_, but that would limit
 """
 
 
+import dataclasses as dcs
 from functools import partial
 from typing import Optional, TypeVar
 
-from . import _global
+from . import _catalog, _inventory
 
 T = TypeVar("T")
 
@@ -50,10 +51,15 @@ def entity(klass: Optional[T] = None) -> T:
         ...     health: Health
 
     """
+    if hasattr(klass, "__post_init__"):
+        raise TypeError("cannot wrap class with __post_init_ defined")
+
+    setattr(klass, "__post_init__", add_to_inventory_post_init)
+
     return add_to_catalog(klass, namespace="entity")
 
 
-# Low-level decorators
+# Low-level decorator support
 # ======================================================================
 
 
@@ -84,10 +90,23 @@ def add_to_catalog(
     if not (namespace and klass):
         raise TypeError("namespace is required; provide as kwarg via decorator")
 
-    registry = _global.get_catalog()
+    registry = _catalog.get_catalog()
     registry.add(namespace, klass)
 
-    return klass
+    # also apply dataclass
+    # -- we want everything that this provides, even if this is a little too magic
+    dklass = dcs.dataclass(klass)
+    return dklass
+
+
+def add_to_inventory_post_init(self) -> None:
+    """Replacement for __post_init__."""
+    inventory = _inventory.get_inventory()
+    inventory.add(self.__class__.__name__, self)
+
+
+# Supporting functions
+# ======================================================================
 
 
 # __END__

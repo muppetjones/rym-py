@@ -78,7 +78,7 @@ def get_catalog() -> Registrar:
     """
     global _CATALOG
     if not _CATALOG:
-        _CATALOG = Registrar()
+        _CATALOG = Registrar(label="cat")
     return _CATALOG
 
 

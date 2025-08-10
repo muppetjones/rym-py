@@ -4,31 +4,13 @@
 import asyncio
 import dataclasses as dcs
 from collections import defaultdict
-from collections.abc import Hashable
+from collections.abc import Callable, Hashable
 from functools import partial
-from typing import Any, ClassVar, NamedTuple, Optional
+from typing import Any, ClassVar, Optional
 from uuid import UUID
 
 from .errors import InvalidStateError, NonUniqueValueError, UnregisteredValueError
-from .identifier import generate_uid
-
-
-class RegisterRecord(NamedTuple):
-    """Aggregate attributes of a registered item.
-
-    NOTE: KISS. We don't need the overhead of a dataclass for this.
-    TODO: Consider using __hash__ instead of __name__.
-    """
-
-    namespace: str
-    value: Any
-    uid: UUID
-
-    @classmethod
-    def new(cls, namespace: str, value: Any) -> "RegisterRecord":
-        """Create an instance."""
-        uid = generate_uid(namespace, value)
-        return cls(namespace=namespace, value=value, uid=uid)
+from .record import CatalogRecord, RegisterRecord
 
 
 @dcs.dataclass
@@ -49,6 +31,8 @@ class Registrar:
         register: Store registered items. Mapping of {UID: record}.
         lookup: Store aliases of registered items. Provides a mapping from
             the alias and namespace to the UID.
+        label: String used to differentiate between different registrars.
+            Recommendation: Do not touch.
         _lock: Class lock for async features. Do not use directly.
     """
 
@@ -58,6 +42,8 @@ class Registrar:
     lookup: dict[Any, dict[str, UUID]] = dcs.field(
         default_factory=partial(defaultdict, dict)
     )
+    label: str = "reg"
+    _Record: Callable = CatalogRecord
 
     _lock: ClassVar[asyncio.Lock] = asyncio.Lock()
 
@@ -88,7 +74,7 @@ class Registrar:
             NonUniqueValueError (ValueError) if the (value, namespace) are
             already registered.
         """
-        record = RegisterRecord.new(namespace, value)
+        record = (self._Record).new(namespace, value)
 
         # Prevent addition of items with name conflicts but ignore known items.
         existing = self.register.get(record.uid)
@@ -105,14 +91,14 @@ class Registrar:
         if isinstance(value, Hashable):
             keys.append(value)
         if name := getattr(value, "__name__", str(value)):
-            keys.extend([name, name.lower()])
+            keys.extend([name])
 
         # Add the item to the register
         for key in keys:
             self.lookup[key][namespace] = record.uid
         self.register[record.uid] = record
-        setattr(value, "__cx_reg_uid__", record.uid)
-        setattr(value, "__cx_reg_namespace__", record.namespace)
+        setattr(value, f"__cx_{self.label}_uid__", record.uid)
+        setattr(value, f"__cx_{self.label}_namespace__", record.namespace)
 
         return record
 
@@ -135,8 +121,11 @@ class Registrar:
             UnregisteredValueError(ValueError) if no matching record found.
             NonUniqueValueError(ValueError) if no unique match (namespace required).
         """
-        matched = self.lookup.get(value)  # keep default as None
-        uid = (matched or {}).get(namespace)
+        matched = None
+        uid = getattr(value, f"__cx_{self.label}_uid__", None)
+        if not uid:
+            matched = self.lookup.get(value)  # keep default as None
+            uid = (matched or {}).get(namespace)
 
         # Rather than a complex set of try:except or nested conditionals,
         # order the conditionals to allow a sort of fall through.

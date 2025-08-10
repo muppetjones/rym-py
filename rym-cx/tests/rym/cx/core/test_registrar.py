@@ -2,12 +2,11 @@
 """Test the registry class."""
 
 import asyncio
-import logging
-from pprint import pformat
 from unittest import IsolatedAsyncioTestCase
 
 import rym.cx.core.registrar as MOD
 from rym.cx.core import identifier
+from rym.cx.core.record import InventoryRecord
 
 
 class ThisTestCase(IsolatedAsyncioTestCase):
@@ -60,7 +59,6 @@ class TestAddAsync(ThisTestCase):
                     subject.add_async(value=Meh, namespace="x"),
                 ]
                 await asyncio.gather(*coro)
-                logging.critical(pformat(subject.register))
 
 
 class TestAdd(ThisTestCase):
@@ -95,12 +93,12 @@ class TestAdd(ThisTestCase):
         subject.add(value=Foo, namespace="X")
 
         # NOTE: The record uid is auto-generated and must match.
-        record = MOD.RegisterRecord.new(value=Foo, namespace="X")
+        record = MOD.CatalogRecord.new(value=Foo, namespace="X")
         expected = {record.uid: record}
         found = subject.register
         self.assertEqual(expected, found)
 
-    async def test_sets_cx_reg_property(self) -> None:
+    async def test_sets_cx_property(self) -> None:
         class Foo:
             ...
 
@@ -109,13 +107,23 @@ class TestAdd(ThisTestCase):
 
         with self.subTest("sets uid"):
             expected = record.uid
-            found = Foo.__cx_reg_uid__
+            attr = f"__cx_{subject.label}_uid__"
+            found = getattr(Foo, attr)
             self.assertEqual(expected, found)
 
         with self.subTest("sets namespace"):
             expected = record.namespace
-            found = Foo.__cx_reg_namespace__
+            attr = f"__cx_{subject.label}_namespace__"
+            found = getattr(Foo, attr)
             self.assertEqual(expected, found)
+
+    async def test_uses_given_record_class(self) -> None:
+        class Foo:
+            ...
+
+        subject = MOD.Registrar(_Record=InventoryRecord)
+        record = subject.add(value=Foo, namespace="X")
+        assert isinstance(record, InventoryRecord)
 
 
 class TestClear(ThisTestCase):
@@ -158,7 +166,7 @@ class TestGet(ThisTestCase):
         tests = [
             # (err, given)
             ("unknown value", {"value": Bar}),
-            ("not in namespace", {"value": Foo, "namespace": "Y"}),
+            ("not in namespace", {"value": "Foo", "namespace": "Y"}),
         ]
         for err, kwargs in tests:
             with self.subTest(err=err, given=kwargs):
@@ -180,9 +188,10 @@ class TestGet(ThisTestCase):
                 await subject.get(value=Foo)
 
         with self.subTest("corrupted lookup"):
-            del subject.lookup[Foo][record.namespace]
+            del subject.lookup["Foo"][record.namespace]
+            delattr(Foo, f"__cx_{subject.label}_uid__")  # prevent easy lookup
             with self.assertRaisesRegex(RuntimeError, "orphaned value"):
-                await subject.get(value=Foo)
+                await subject.get(value="Foo")
 
     async def test_behavior_with_namespace(self) -> None:
         class FooA:
@@ -204,10 +213,10 @@ class TestGet(ThisTestCase):
 
         with self.subTest("raise if no namespace and not unique"):
             with self.assertRaisesRegex(ValueError, "namespace required"):
-                _ = await subject.get("foo")
+                _ = await subject.get("Foo")
 
         with self.subTest("namespace resolve name conflict"):
-            found = await subject.get("foo", namespace="B")
+            found = await subject.get("Foo", namespace="B")
             expected = record_b
             self.assertEqual(expected, found)
 
@@ -221,7 +230,6 @@ class TestGet(ThisTestCase):
         tests = [
             Foo,
             "Foo",
-            "foo",
             record.uid,
         ]
         expected = record

@@ -5,7 +5,7 @@ import logging
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import Mock
 
-import rym.cx.core._global as MOD
+import rym.cx.core._catalog as MOD
 from rym.cx.core.registrar import Registrar
 
 LOGGER = logging.getLogger(__name__)
@@ -13,6 +13,10 @@ LOGGER = logging.getLogger(__name__)
 
 class ThisTestCase(IsolatedAsyncioTestCase):
     """Base test case for the module."""
+
+    async def asyncSetUp(self) -> None:
+        await MOD.clear_catalog(Mock())
+        self.addCleanup(MOD.clear_catalog, Mock())
 
 
 class TestClearCatalog(ThisTestCase):
@@ -56,6 +60,12 @@ class TestGetCatalog(ThisTestCase):
         a = MOD.get_catalog()  # type: Registrar
         b = Registrar()
         assert a is not b
+
+    async def test_sets_label(self) -> None:
+        subject = MOD.get_catalog()
+        expected = "cat"
+        found = subject.label
+        self.assertEqual(expected, found)
 
 
 # __END__
