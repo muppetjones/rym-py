@@ -15,8 +15,8 @@ class ThisTestCase(IsolatedAsyncioTestCase):
     """Base test case for the module."""
 
     async def asyncSetUp(self) -> None:
-        await MOD.clear_inventory(Mock())
-        self.addCleanup(MOD.clear_inventory, Mock())
+        await MOD.clear_inventory_async(Mock())
+        self.addCleanup(MOD.clear_inventory_async, Mock())
 
 
 class TestClearInventory(ThisTestCase):
@@ -29,7 +29,7 @@ class TestClearInventory(ThisTestCase):
         one = MOD.get_inventory()
         one.add("x", Foo)
 
-        await MOD.clear_inventory(logger=Mock())
+        await MOD.clear_inventory_async(logger=Mock())
 
         with self.subTest("clears current inventory"):
             assert bool(one.lookup) is False
@@ -40,10 +40,12 @@ class TestClearInventory(ThisTestCase):
             assert one is not two
 
     async def test_repeated_clear(self) -> None:
+        logger = Mock()
         _ = MOD.get_inventory()  # make sure we have something to clear
-        await MOD.clear_inventory(logger=Mock())
-        await MOD.clear_inventory(logger=Mock())  # should not raise
-        await MOD.clear_inventory(logger=Mock())  # should not raise
+        await MOD.clear_inventory_async(logger=logger)
+        await MOD.clear_inventory_async(logger=logger)  # should not raise
+        MOD.clear_inventory(logger=logger)  # should not raise
+        await MOD.clear_inventory_async(logger=logger)  # should not raise
 
 
 class TestGetInventory(ThisTestCase):

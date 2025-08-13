@@ -2,6 +2,7 @@
 """Test the registry class."""
 
 import asyncio
+import dataclasses as dcs
 from unittest import IsolatedAsyncioTestCase
 
 import rym.cx.core.registrar as MOD
@@ -73,37 +74,54 @@ class TestAdd(ThisTestCase):
 
         Meh.__name__ = "Foo"
         subject = MOD.Registrar()
-        record = subject.add(value=Foo, namespace="X")
+        record = subject.add("X", Foo)
 
         with self.subTest("igore true duplicates"):
-            subject.add(value=Foo, namespace=record.namespace)
+            subject.add(record.namespace, Foo)
 
         with self.subTest("disallow intra-namespace commonality"):
             with self.assertRaises(ValueError):
-                subject.add(value=Meh, namespace=record.namespace)
+                subject.add(record.namespace, Meh)
 
         with self.subTest("allow inter-namespace commonality"):
-            subject.add(value=Meh, namespace="Y")
+            subject.add("Y", Meh)
 
-    async def test_stores_record(self) -> None:
+    async def test_raises_if_invalid_namespace(self) -> None:
         class Foo:
             ...
 
         subject = MOD.Registrar()
-        subject.add(value=Foo, namespace="X")
+        with self.assertRaisesRegex(ValueError, "must be hashable"):
+            subject.add({"foo"}, Foo)
 
-        # NOTE: The record uid is auto-generated and must match.
-        record = MOD.CatalogRecord.new(value=Foo, namespace="X")
-        expected = {record.uid: record}
-        found = subject.register
-        self.assertEqual(expected, found)
+    async def test_returns_and_stores_record(self) -> None:
+        class Foo:
+            ...
+
+        subject = MOD.Registrar()
+        result = subject.add("X", Foo)
+
+        with self.subTest("returns record"):
+            expected = subject._Record.new("X", Foo)
+            found = result
+            self.assertEqual(expected, found)
+
+        with self.subTest("stores record"):
+            expected = {result.uid: result}
+            found = subject.register
+            self.assertEqual(expected, found)
+
+        with self.subTest("indexed by namespace"):
+            expected = {"X": [result.uid]}
+            found = subject.lookup
+            self.assertEqual(expected, found)
 
     async def test_sets_cx_property(self) -> None:
         class Foo:
             ...
 
         subject = MOD.Registrar()
-        record = subject.add(value=Foo, namespace="X")
+        record = subject.add("X", Foo)
 
         with self.subTest("sets uid"):
             expected = record.uid
@@ -122,8 +140,51 @@ class TestAdd(ThisTestCase):
             ...
 
         subject = MOD.Registrar(_Record=InventoryRecord)
-        record = subject.add(value=Foo, namespace="X")
+        record = subject.add("X", Foo)
         assert isinstance(record, InventoryRecord)
+
+    async def test_supports_namespace_by_class(self):
+        # NOTE: Intended for use with InventoryRecord
+        @dcs.dataclass
+        class Foo:
+            x: int
+
+        subject = MOD.Registrar(_Record=InventoryRecord)
+        record = subject.add(Foo, Foo(0))
+
+        with self.subTest("record by class name"):
+            expected = Foo.__name__
+            found = record.namespace
+            self.assertEqual(expected, found)
+
+        with self.subTest("lookup by class name"):
+            expected = {Foo.__name__: [record.uid]}
+            found = subject.lookup
+            self.assertEqual(expected, found)
+
+
+class TestClearAsync(ThisTestCase):
+    """Test coroutine."""
+
+    async def test_removes_all_registered_items(self) -> None:
+        class Foo:
+            ...
+
+        class Bar:
+            ...
+
+        subject = MOD.Registrar()
+        subject.add("X", Foo)
+        subject.add("Y", Bar)
+
+        # control: make sure the items were added
+        assert bool(subject.register) is not False
+        assert bool(subject.lookup) is not False
+
+        await subject.clear_async()
+
+        assert bool(subject.register) is False
+        assert bool(subject.lookup) is False
 
 
 class TestClear(ThisTestCase):
@@ -137,23 +198,23 @@ class TestClear(ThisTestCase):
             ...
 
         subject = MOD.Registrar()
-        subject.add(value=Foo, namespace="X")
-        subject.add(value=Bar, namespace="Y")
+        subject.add("X", Foo)
+        subject.add("Y", Bar)
 
         # control: make sure the items were added
         assert bool(subject.register) is not False
         assert bool(subject.lookup) is not False
 
-        await subject.clear()
+        subject.clear()
 
         assert bool(subject.register) is False
         assert bool(subject.lookup) is False
 
 
-class TestGet(ThisTestCase):
+class TestGetByNamespace(ThisTestCase):
     """Test function."""
 
-    async def test_raises_for_unknown_record(self) -> None:
+    async def test_raises_for_unknown_namespace(self) -> None:
         class Foo:
             ...
 
@@ -161,81 +222,77 @@ class TestGet(ThisTestCase):
             ...
 
         subject = MOD.Registrar()
-        subject.add(value=Foo, namespace="X")
+        subject.add("X", Foo)
 
-        tests = [
-            # (err, given)
-            ("unknown value", {"value": Bar}),
-            ("not in namespace", {"value": "Foo", "namespace": "Y"}),
-        ]
-        for err, kwargs in tests:
-            with self.subTest(err=err, given=kwargs):
-                with self.assertRaisesRegex(ValueError, err):
-                    await subject.get(**kwargs)
+        with self.subTest("control"):
+            expected = [Foo]
+            found = await subject.get_by_namespace("X")
+            self.assertEqual(expected, found)
 
-    async def test_raises_for_invalid_state(self) -> None:
-        # NOTE: This test evaluates (what should be) an impossible state
-        class Foo:
-            ...
+        tests = ["Y", None]
+        for given in tests:
+            with self.subTest(given):
+                with self.assertRaisesRegex(ValueError, "register items first"):
+                    await subject.get_by_namespace(given)
 
+    async def test_raises_for_invalid_namespace(self) -> None:
         subject = MOD.Registrar()
-        record = subject.add(value=Foo, namespace="X")
+        with self.assertRaisesRegex(ValueError, "must be hashable"):
+            await subject.get_by_namespace({"foo"})
 
-        with self.subTest("corrupted registry"):
-            # MUST test first
-            del subject.register[record.uid]
-            with self.assertRaisesRegex(RuntimeError, "unknown uid"):
-                await subject.get(value=Foo)
-
-        with self.subTest("corrupted lookup"):
-            del subject.lookup["Foo"][record.namespace]
-            delattr(Foo, f"__cx_{subject.label}_uid__")  # prevent easy lookup
-            with self.assertRaisesRegex(RuntimeError, "orphaned value"):
-                await subject.get(value="Foo")
-
-    async def test_behavior_with_namespace(self) -> None:
+    async def test_returns_list_of_items_in_namespace(self) -> None:
         class FooA:
             ...
 
         class FooB:
             ...
 
-        FooA.__name__ = "Foo"
-        FooB.__name__ = "Foo"
-        subject = MOD.Registrar()
-        record_a = subject.add(value=FooA, namespace="A")
-        record_b = subject.add(value=FooB, namespace="B")
-
-        with self.subTest("namespace not required if given unique"):
-            found = await subject.get(value=FooA)
-            expected = record_a
-            self.assertEqual(expected, found)
-
-        with self.subTest("raise if no namespace and not unique"):
-            with self.assertRaisesRegex(ValueError, "namespace required"):
-                _ = await subject.get("Foo")
-
-        with self.subTest("namespace resolve name conflict"):
-            found = await subject.get("Foo", namespace="B")
-            expected = record_b
-            self.assertEqual(expected, found)
-
-    async def test_returns_record(self) -> None:
-        class Foo:
+        class Bar:
             ...
 
+        FooA.__name__ = "Foo"  # must be able to pull same name out independently
+        FooB.__name__ = "Foo"
+
         subject = MOD.Registrar()
-        record = subject.add(value=Foo, namespace="X")
+        _ = subject.add("A", FooA)
+        _ = subject.add("B", FooB)
+        _ = subject.add("A", Bar)
 
         tests = [
-            Foo,
-            "Foo",
-            record.uid,
+            # (expected, given)
+            ([FooA, Bar], "A"),
+            ([FooB], "B"),
         ]
-        expected = record
-        for given in tests:
+
+        for expected, given in tests:
             with self.subTest(given):
-                found = await subject.get(given)
+                found = await subject.get_by_namespace(given)
+                self.assertEqual(expected, found)
+
+    async def test_supports_lookup_by_class(self):
+        # NOTE: Intended for use with InventoryRecord
+
+        @dcs.dataclass
+        class Foo:
+            x: int
+
+        @dcs.dataclass
+        class Bar:
+            y: int
+
+        subject = MOD.Registrar(_Record=InventoryRecord)
+        instances = [Foo(0), Foo(1), Bar(3)]
+        for instance in instances:
+            subject.add(instance.__class__.__name__, instance)
+
+        tests = [
+            # (expected, given)
+            (instances[:2], Foo),
+            (instances[2:], Bar),
+        ]
+        for expected, given in tests:
+            with self.subTest(given):
+                found = await subject.get_by_namespace(given)
                 self.assertEqual(expected, found)
 
 

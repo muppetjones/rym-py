@@ -23,7 +23,23 @@ from .registrar import Registrar
 _INVENTORY = None  # type: Registrar
 
 
-async def clear_inventory(logger: Optional[logging.Logger] = None) -> None:
+async def clear_inventory_async(logger: Optional[logging.Logger] = None) -> None:
+    """Clear the current global inventory and inventory instance.
+
+    See also:
+        clear_inventory.
+    """
+    global _INVENTORY
+    if not _INVENTORY:
+        return  # EARLY EXIT: no inventory -- ignore
+    logger = logger or logging.getLogger(__name__)
+
+    logger.warning("Clearing cx inventory")
+    await _INVENTORY.clear_async()
+    _INVENTORY = None
+
+
+def clear_inventory(logger: Optional[logging.Logger] = None) -> None:
     """Clear the current global inventory and inventory instance.
 
     In case someone is storing a reference to the inventory, clear the instance.
@@ -60,7 +76,7 @@ async def clear_inventory(logger: Optional[logging.Logger] = None) -> None:
     logger = logger or logging.getLogger(__name__)
 
     logger.warning("Clearing cx inventory")
-    await _INVENTORY.clear()
+    _INVENTORY.clear()
     _INVENTORY = None
 
 

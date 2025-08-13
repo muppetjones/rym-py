@@ -15,8 +15,8 @@ class ThisTestCase(IsolatedAsyncioTestCase):
     """Base test case for the module."""
 
     async def asyncSetUp(self) -> None:
-        await MOD.clear_catalog(Mock())
-        self.addCleanup(MOD.clear_catalog, Mock())
+        await MOD.clear_catalog_async(Mock())
+        self.addCleanup(MOD.clear_catalog_async, Mock())
 
 
 class TestClearCatalog(ThisTestCase):
@@ -29,21 +29,25 @@ class TestClearCatalog(ThisTestCase):
         one = MOD.get_catalog()
         one.add("x", Foo)
 
-        await MOD.clear_catalog(logger=Mock())
+        await MOD.clear_catalog_async(logger=Mock())
 
-        with self.subTest("clears current catalog"):
-            assert bool(one.lookup) is False
-            assert bool(one.register) is False
+        with self.subTest("clears current catalog lookup"):
+            assert bool(one.lookup) is False, one.lookup
+
+        with self.subTest("clears current catalog register"):
+            assert bool(one.register) is False, one.register
 
         with self.subTest("creates new catalog instance"):
             two = MOD.get_catalog()
             assert one is not two
 
     async def test_repeated_clear(self) -> None:
+        logger = Mock()
         _ = MOD.get_catalog()  # make sure we have something to clear
-        await MOD.clear_catalog(logger=Mock())
-        await MOD.clear_catalog(logger=Mock())  # should not raise
-        await MOD.clear_catalog(logger=Mock())  # should not raise
+        await MOD.clear_catalog_async(logger=logger)
+        await MOD.clear_catalog_async(logger=logger)  # should not raise
+        MOD.clear_catalog(logger=logger)  # should not raise
+        await MOD.clear_catalog_async(logger=logger)  # should not raise
 
 
 class TestGetCatalog(ThisTestCase):

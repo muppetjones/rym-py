@@ -7,15 +7,14 @@ from unittest.mock import Mock
 
 import rym.cx.core.decorator as MOD
 from rym.cx.core import _catalog, _inventory
-from rym.cx.core.record import CatalogRecord, InventoryRecord
 
 
 class ThisTestCase(IsolatedAsyncioTestCase):
     """Base test case for the module."""
 
     async def asyncSetUp(self) -> None:
-        await _catalog.clear_catalog(Mock())
-        self.addCleanup(_catalog.clear_catalog, Mock())
+        await _catalog.clear_catalog_async(Mock())
+        self.addCleanup(_catalog.clear_catalog_async, Mock())
 
 
 class TestAddToCatalog(ThisTestCase):
@@ -50,8 +49,8 @@ class TestAddToCatalog(ThisTestCase):
             ...
 
         subject = _catalog.get_catalog()
-        found = await subject.get(Foo)
-        expected = CatalogRecord.new("example", Foo)
+        found = await subject.get_by_namespace("example")
+        expected = [Foo]
         self.assertEqual(expected, found)
 
     async def test_applies_dataclass(self) -> None:
@@ -60,9 +59,9 @@ class TestAddToCatalog(ThisTestCase):
             x: int
             y: bool
 
-        subject = _catalog.get_catalog()
-        _ = await subject.get(Foo)
-        assert dcs.is_dataclass(Foo)
+        expected = True
+        found = dcs.is_dataclass(Foo)
+        self.assertEqual(expected, found)
 
 
 class TestComponentDecorator(ThisTestCase):
@@ -74,15 +73,15 @@ class TestComponentDecorator(ThisTestCase):
             ...
 
         subject = _catalog.get_catalog()
-        record = await subject.get(Foo)
 
         with self.subTest("adds to catalog"):
-            found = record
-            expected = CatalogRecord.new("component", Foo)
+            found = await subject.get_by_namespace("component")
+            expected = [Foo]
             self.assertEqual(expected, found)
 
         with self.subTest("sets cx_cat attribute on the registered object"):
             # NOTE: Technically redundant with catalog and registrar tests
+            record = list(subject.register.values())[0]  # only one expected
             expected = (record.namespace, record.uid)
             found = (Foo.__cx_cat_namespace__, Foo.__cx_cat_uid__)
             self.assertEqual(expected, found)
@@ -107,15 +106,15 @@ class TestEntityDecorator(ThisTestCase):
             ...
 
         subject = _catalog.get_catalog()
-        record = await subject.get(Foo)
 
         with self.subTest("adds to catalog"):
-            found = record
-            expected = CatalogRecord.new("entity", Foo)
+            expected = [Foo]
+            found = await subject.get_by_namespace("entity")
             self.assertEqual(expected, found)
 
         with self.subTest("sets cx_cat attribute on the registered object"):
             # NOTE: Technically redundant with catalog and registrar tests
+            record = list(subject.register.values())[0]  # only one expected
             expected = (record.namespace, record.uid)
             found = (Foo.__cx_cat_namespace__, Foo.__cx_cat_uid__)
             self.assertEqual(expected, found)
@@ -128,11 +127,10 @@ class TestEntityDecorator(ThisTestCase):
 
         subject = _inventory.get_inventory()
         instance = Foo(867, 5309)
-        record = await subject.get(instance)
 
         with self.subTest("adds to inventory"):
-            found = record
-            expected = InventoryRecord(Foo.__name__, instance, uid=record.uid)
+            found = await subject.get_by_namespace(Foo)
+            expected = [instance]
             self.assertEqual(expected, found)
 
 

@@ -23,7 +23,23 @@ from .registrar import Registrar
 _CATALOG = None  # type: Registrar
 
 
-async def clear_catalog(logger: Optional[logging.Logger] = None) -> None:
+async def clear_catalog_async(logger: Optional[logging.Logger] = None) -> None:
+    """Clear the current global catalog and catalog instance.
+
+    See also:
+        clear_catalog
+    """
+    global _CATALOG
+    if not _CATALOG:
+        return  # EARLY EXIT: no catalog -- ignore
+    logger = logger or logging.getLogger(__name__)
+
+    logger.warning("Clearing cx catalog")
+    await _CATALOG.clear_async()
+    _CATALOG = None
+
+
+def clear_catalog(logger: Optional[logging.Logger] = None) -> None:
     """Clear the current global catalog and catalog instance.
 
     In case someone is storing a reference to the catalog, clear the instance.
@@ -60,7 +76,7 @@ async def clear_catalog(logger: Optional[logging.Logger] = None) -> None:
     logger = logger or logging.getLogger(__name__)
 
     logger.warning("Clearing cx catalog")
-    await _CATALOG.clear()
+    _CATALOG.clear()
     _CATALOG = None
 
 

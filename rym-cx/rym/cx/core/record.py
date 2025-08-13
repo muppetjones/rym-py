@@ -1,18 +1,24 @@
 #!/usr/bin/env python3
-"""Define registrar records."""
+"""Define registrar records.
+
+NOTE: In 3.11, NamedTuples support generics. Make do for now.
+"""
 
 
-from typing import Any, NamedTuple, Protocol
+from collections.abc import Callable
+from typing import Any, NamedTuple, Protocol, TypeVar
 from uuid import UUID, uuid4
 
 from .identifier import generate_uid
 
+T = TypeVar("T")
 
-class RegisterRecord(Protocol):
+
+class RegisterRecord(Protocol[T]):
     """Define a record protocol."""
 
     namespace: str
-    value: Any
+    value: T
     uid: UUID
 
     @classmethod
@@ -30,11 +36,11 @@ class CatalogRecord(NamedTuple):
     """
 
     namespace: str
-    value: Any
+    value: Callable
     uid: UUID
 
     @classmethod
-    def new(cls, namespace: str, value: Any) -> "CatalogRecord":
+    def new(cls, namespace: str, value: Callable) -> "CatalogRecord":
         """Create an instance."""
         uid = generate_uid(namespace, value)
         return cls(namespace=namespace, value=value, uid=uid)

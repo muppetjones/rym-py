@@ -9,8 +9,12 @@ class InvalidStateError(RuntimeError):
     """
 
 
-class UnregisteredValueError(ValueError):
-    """Raise if given value is not associated with a registered item."""
+class UnregisteredNamespaceError(ValueError):
+    """Raise if unknown namespace."""
+
+
+class InvalidNamespaceError(ValueError):
+    """Raise if namespace is not valid."""
 
 
 class NonUniqueValueError(ValueError):

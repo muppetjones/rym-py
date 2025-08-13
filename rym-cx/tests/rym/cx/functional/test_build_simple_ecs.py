@@ -6,7 +6,7 @@ from typing import Iterable, TypeVar
 from unittest import TestCase
 
 from rym import cx
-from rym.cx.core import _global
+from rym.cx.core import _catalog, _inventory
 
 T = TypeVar("T")
 
@@ -21,11 +21,13 @@ LOGGER = logging.getLogger(__name__)
 
 
 def setUpModule() -> None:
-    _global.clear_catalog()
+    _catalog.clear_catalog()
+    _inventory.clear_inventory()
 
 
 def tearDownModule() -> None:
-    _global.clear_catalog()
+    _catalog.clear_catalog()
+    _inventory.clear_inventory()
 
 
 # ----------------------------------
@@ -138,19 +140,16 @@ class TestBehavior(ThisTestCase):
 
         # She then adds three plants ...
         plants = [
-            cx.add_entity(Plant, loc=(1, 2)),
-            cx.add_entity("Plant", loc=(0, 3)),
-            cx.add_entity("plant", loc=(-1, -3)),
+            Plant(loc=(1, 2)),
+            Plant(loc=(0, 3)),
+            Plant(loc=(-1, -3)),
         ]
 
         # ... and two monsters, one of which is already injured
-        monsters = cx.add_entities(
-            Monster,
-            [
-                {"loc": (-1, 2), "health": 40},
-                {"loc": (2, -1), "health": (40, 30)},
-            ],
-        )
+        monsters = [
+            Monster(loc=(-1, 2), health=40),
+            Monster(loc=(2, -1), health=(40, 30)),
+        ]
 
         # With everything setup, she starts checking the integrity of the system.
         # First, she looks for the injured monster:

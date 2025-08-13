@@ -5,12 +5,18 @@ import asyncio
 import dataclasses as dcs
 from collections import defaultdict
 from collections.abc import Callable, Hashable
-from functools import partial
-from typing import Any, ClassVar, Optional
+from functools import partial, singledispatchmethod
+from typing import Any, ClassVar, Optional, TypeVar
 from uuid import UUID
 
-from .errors import InvalidStateError, NonUniqueValueError, UnregisteredValueError
+from .errors import (
+    InvalidNamespaceError,
+    NonUniqueValueError,
+    UnregisteredNamespaceError,
+)
 from .record import CatalogRecord, RegisterRecord
+
+T = TypeVar("T")
 
 
 @dcs.dataclass
@@ -24,13 +30,14 @@ class Registrar:
         tracks the creation of classes not instances. Classes are registered during
         import, and should be fully loaded prior to execution of the main program. As
         such, the added complexity likely isn't worth it -- at least for add().
-        HOWEVER, if this is really meant to be used, we _need_ async. Define an async
-        wrapper around add() and make the other methods async.
+        Unfortunately, one of the lightest ways to allow auto registration of new
+        inventory instances is to use __post_init__, which isn't async.
+        HOWEVER, if this is really meant to be usable, we'll need async for some cases.
+        For now, define an asyncwrapper around add() and make the other methods async.
 
     Attributes:
         register: Store registered items. Mapping of {UID: record}.
-        lookup: Store aliases of registered items. Provides a mapping from
-            the alias and namespace to the UID.
+        lookup: Namespace lookup. Nothing too fancy.
         label: String used to differentiate between different registrars.
             Recommendation: Do not touch.
         _lock: Class lock for async features. Do not use directly.
@@ -38,14 +45,17 @@ class Registrar:
 
     # NOTE: We could use more efficient data types for storage, e.g., deque,
     #   at the cost of additional lookup complexity. KISS for now.
-    register: dict[UUID, RegisterRecord] = dcs.field(default_factory=dict)
+    register: dict[UUID, RegisterRecord[T]] = dcs.field(default_factory=dict)
     lookup: dict[Any, dict[str, UUID]] = dcs.field(
-        default_factory=partial(defaultdict, dict)
+        default_factory=partial(defaultdict, list)
     )
     label: str = "reg"
     _Record: Callable = CatalogRecord
 
     _lock: ClassVar[asyncio.Lock] = asyncio.Lock()
+
+    # add
+    # ----------------------------------
 
     async def add_async(self, namespace: str, value: Any) -> RegisterRecord:
         """Add given item to the register.
@@ -59,7 +69,8 @@ class Registrar:
             # Lock to prevent race condition between checking and adding the item.
             self.add(namespace, value)
 
-    def add(self, namespace: str, value: Any) -> RegisterRecord:
+    @singledispatchmethod
+    def add(self, namespace: str, value: T) -> RegisterRecord:
         """Add given item to the register.
 
         TODO: Use rym.alias.AliasResolver.
@@ -74,6 +85,16 @@ class Registrar:
             NonUniqueValueError (ValueError) if the (value, namespace) are
             already registered.
         """
+        raise InvalidNamespaceError(f"must be hashable or class: {namespace}")
+
+    @add.register
+    def _(self, namespace: Callable, value: T) -> RegisterRecord:
+        """Dispatch for callable namespace lookup."""
+        return self._add_hashable(namespace.__name__, value)
+
+    @add.register
+    def _add_hashable(self, namespace: Hashable, value: T) -> list[T]:
+        """Dispatch for callable hashable lookup."""
         record = (self._Record).new(namespace, value)
 
         # Prevent addition of items with name conflicts but ignore known items.
@@ -85,84 +106,61 @@ class Registrar:
         else:
             raise NonUniqueValueError(f"value exists in namespace: {record}")
 
-        # Generate aliases for easier lookup
-        # TODO: Consider using a singledispatch generator to build this.
-        keys = [record.uid]
-        if isinstance(value, Hashable):
-            keys.append(value)
-        if name := getattr(value, "__name__", str(value)):
-            keys.extend([name])
-
         # Add the item to the register
-        for key in keys:
-            self.lookup[key][namespace] = record.uid
         self.register[record.uid] = record
+        self.lookup[namespace].append(record.uid)
+
+        # Tag the item
         setattr(value, f"__cx_{self.label}_uid__", record.uid)
         setattr(value, f"__cx_{self.label}_namespace__", record.namespace)
 
         return record
 
-    async def clear(self) -> None:
+    # clear
+    # ----------------------------------
+
+    async def clear_async(self) -> None:
+        """Clear registered items."""
+        async with self._lock:
+            self.clear()
+
+    def clear(self) -> None:
         """Clear registered items."""
         # NOTE: Use default_factory for safety.
-        async with self._lock:
-            self.lookup = Registrar.__dataclass_fields__["lookup"].default_factory()
-            self.register = Registrar.__dataclass_fields__["register"].default_factory()
+        self.lookup = Registrar.__dataclass_fields__["lookup"].default_factory()
+        self.register = Registrar.__dataclass_fields__["register"].default_factory()
 
-    async def get(self, value: Any, namespace: Optional[str] = None) -> RegisterRecord:
+    # get_by_namespace
+    # ----------------------------------
+
+    @singledispatchmethod
+    async def get_by_namespace(self, namespace: Optional[str] = None) -> list[T]:
         """Retrieve registered record associated with given input.
 
         Arguments:
-            value: Used to lookup the record.
-            namespace: The namespace to look in.
+            namespace: The namespace to retrieve items from
         Returns:
             Registered record.
         Raises:
-            UnregisteredValueError(ValueError) if no matching record found.
-            NonUniqueValueError(ValueError) if no unique match (namespace required).
+            UnregisteredNamespaceError(ValueError) if no matching namespace
+            InvalidNamespaceError(ValueError) if namespace is invalid
         """
-        matched = None
-        uid = getattr(value, f"__cx_{self.label}_uid__", None)
-        if not uid:
-            matched = self.lookup.get(value)  # keep default as None
-            uid = (matched or {}).get(namespace)
+        raise InvalidNamespaceError(f"must be hashable or class: {namespace}")
 
-        # Rather than a complex set of try:except or nested conditionals,
-        # order the conditionals to allow a sort of fall through.
-        # NOTE: Ideally, a unique match w/o namespace would not be the last conditional,
-        #   but we have to be sure we actually have matches first. Any other order
-        #   would check something twice.
-        msg = None
-        error = None
-        if uid:
-            pass  # got what we need
-        elif matched is None:
-            msg = "unknown value"
-            error = UnregisteredValueError
-        elif not matched:
-            msg = "orphaned value; rebuild lookup"
-            error = InvalidStateError
-        elif namespace:
-            # i.e., given namespace, but no match
-            msg = "value not in namespace"
-            error = UnregisteredValueError
-        elif len(matched) != 1:
-            # i.e., no namespace, cannot differentiate
-            msg = "multiple matches; namespace required"
-            error = NonUniqueValueError
-        else:
-            # i.e., no namespace given but only one match
-            uid = list(matched.values())[0]
+    @get_by_namespace.register
+    async def _(self, namespace: Callable) -> list[T]:
+        """Dispatch for callable namespace lookup."""
+        return await self._get_by_namespace_hashable(namespace.__name__)
 
-        if not uid:
-            # NOTE: Could check error or msg instead, but we only care if we have a uid.
-            raise error(f"{msg} ({namespace}, {value})")  # EARLY EXIT: no match!
+    @get_by_namespace.register
+    async def _get_by_namespace_hashable(self, namespace: Hashable) -> list[T]:
+        """Dispatch for hashable namespace lookup."""
+        if namespace not in self.lookup:
+            raise UnregisteredNamespaceError(f"{namespace}; register items first")
 
-        try:
-            return self.register[uid]
-        except KeyError:
-            msg = "unknown uid; rebuild lookup"
-            raise InvalidStateError(f"{msg} ({namespace}, {value})")
+        ids = self.lookup[namespace]
+        items = [self.register[id_].value for id_ in ids]
+        return items
 
 
 # __END__
