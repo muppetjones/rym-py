@@ -6,12 +6,13 @@ import dataclasses as dcs
 from collections import defaultdict
 from collections.abc import Callable, Hashable
 from functools import partial, singledispatchmethod
-from typing import Any, ClassVar, Optional, TypeVar
+from typing import Any, ClassVar, Generator, Optional, TypeVar
 from uuid import UUID
 
 from .errors import (
     InvalidNamespaceError,
     NonUniqueValueError,
+    UnregisteredAssetError,
     UnregisteredNamespaceError,
 )
 from .record import CatalogRecord, RegisterRecord
@@ -140,6 +141,25 @@ class Registrar:
         # NOTE: Use default_factory for safety.
         self.lookup = Registrar.__dataclass_fields__["lookup"].default_factory()
         self.register = Registrar.__dataclass_fields__["register"].default_factory()
+
+    # yield_by_id
+    # ----------------------------------
+
+    async def get_by_uid(self, *args: UUID) -> Generator[T, None, None]:
+        """Return asset registered with givien uid.
+
+        Arguments:
+            *args: One or more UUIDs
+        Returns:
+            A tuple of the registered assets.
+        Raises:
+            UnregisteredAssetError if unknown ID given.
+        """
+        record = [(x, self.register.get(x)) for x in args]
+        unknown = [x for x, y in record if not y]
+        if unknown:
+            raise UnregisteredAssetError(f"unknown uid: {unknown}")
+        return [y.value for _, y in record if y]
 
     # get_by_namespace
     # ----------------------------------

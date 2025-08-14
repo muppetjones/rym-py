@@ -4,6 +4,7 @@
 import asyncio
 import dataclasses as dcs
 from unittest import IsolatedAsyncioTestCase
+from unittest.mock import Mock
 
 import rym.cx.core.registrar as MOD
 from rym.cx.core import identifier
@@ -28,14 +29,11 @@ class TestAddAsync(ThisTestCase):
     """Test coroutine."""
 
     async def test_behavior(self) -> None:
-        class Foo:
-            ...
+        class Foo: ...
 
-        class Bar:
-            ...
+        class Bar: ...
 
-        class Meh:
-            ...
+        class Meh: ...
 
         subject = MOD.Registrar()
 
@@ -66,11 +64,9 @@ class TestAdd(ThisTestCase):
     """Test function."""
 
     async def test_raises_if_name_conflict_detected(self) -> None:
-        class Foo:
-            ...
+        class Foo: ...
 
-        class Meh:
-            ...
+        class Meh: ...
 
         Meh.__name__ = "Foo"
         subject = MOD.Registrar()
@@ -87,16 +83,14 @@ class TestAdd(ThisTestCase):
             subject.add("Y", Meh)
 
     async def test_raises_if_invalid_namespace(self) -> None:
-        class Foo:
-            ...
+        class Foo: ...
 
         subject = MOD.Registrar()
         with self.assertRaisesRegex(ValueError, "must be hashable"):
             subject.add({"foo"}, Foo)
 
     async def test_returns_and_stores_record(self) -> None:
-        class Foo:
-            ...
+        class Foo: ...
 
         subject = MOD.Registrar()
         result = subject.add("X", Foo)
@@ -117,8 +111,7 @@ class TestAdd(ThisTestCase):
             self.assertEqual(expected, found)
 
     async def test_sets_cx_property(self) -> None:
-        class Foo:
-            ...
+        class Foo: ...
 
         subject = MOD.Registrar()
         record = subject.add("X", Foo)
@@ -136,8 +129,7 @@ class TestAdd(ThisTestCase):
             self.assertEqual(expected, found)
 
     async def test_uses_given_record_class(self) -> None:
-        class Foo:
-            ...
+        class Foo: ...
 
         subject = MOD.Registrar(_Record=InventoryRecord)
         record = subject.add("X", Foo)
@@ -167,11 +159,9 @@ class TestClearAsync(ThisTestCase):
     """Test coroutine."""
 
     async def test_removes_all_registered_items(self) -> None:
-        class Foo:
-            ...
+        class Foo: ...
 
-        class Bar:
-            ...
+        class Bar: ...
 
         subject = MOD.Registrar()
         subject.add("X", Foo)
@@ -191,11 +181,9 @@ class TestClear(ThisTestCase):
     """Test function."""
 
     async def test_removes_all_registered_items(self) -> None:
-        class Foo:
-            ...
+        class Foo: ...
 
-        class Bar:
-            ...
+        class Bar: ...
 
         subject = MOD.Registrar()
         subject.add("X", Foo)
@@ -211,15 +199,42 @@ class TestClear(ThisTestCase):
         assert bool(subject.lookup) is False
 
 
+class TestGetByUid(ThisTestCase):
+    """Test function."""
+
+    async def test_raises_for_unknown_uid(self) -> None:
+        subject = MOD.Registrar()
+        with self.assertRaisesRegex(ValueError, "unknown uid"):
+            await subject.get_by_uid("foo")
+
+    async def test_returns_assets(self) -> None:
+        subject = MOD.Registrar()
+        mocks = [Mock(x=i) for i in range(5)]
+        for m in mocks:
+            subject.add("mock", m)
+
+        with self.subTest("single id"):
+            idx = 2
+            uid = getattr(mocks[idx], subject.uid_tag)
+            found = await subject.get_by_uid(uid)
+            expected = [mocks[idx]]
+            self.assertEqual(expected, found)
+
+        with self.subTest("multiple ids"):
+            idx = [3, 4]
+            uid = [getattr(mocks[x], subject.uid_tag) for x in idx]
+            found = await subject.get_by_uid(*uid)
+            expected = [mocks[x] for x in idx]
+            self.assertEqual(expected, found)
+
+
 class TestGetByNamespace(ThisTestCase):
     """Test function."""
 
     async def test_raises_for_unknown_namespace(self) -> None:
-        class Foo:
-            ...
+        class Foo: ...
 
-        class Bar:
-            ...
+        class Bar: ...
 
         subject = MOD.Registrar()
         subject.add("X", Foo)
@@ -241,14 +256,11 @@ class TestGetByNamespace(ThisTestCase):
             await subject.get_by_namespace({"foo"})
 
     async def test_returns_list_of_items_in_namespace(self) -> None:
-        class FooA:
-            ...
+        class FooA: ...
 
-        class FooB:
-            ...
+        class FooB: ...
 
-        class Bar:
-            ...
+        class Bar: ...
 
         FooA.__name__ = "Foo"  # must be able to pull same name out independently
         FooB.__name__ = "Foo"

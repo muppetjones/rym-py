@@ -16,12 +16,20 @@ NOTE: Not a big fan of "_global" as a name, but it is apt.
 """
 
 import logging
-from typing import Any, Optional
+from typing import Any, Generator, Optional, Protocol
+from uuid import UUID
 
 from .errors import UnregisteredAssetError
 from .registrar import Registrar
 
 _INVENTORY = None  # type: Registrar
+
+
+class Asset(Protocol):
+    """Generic protocol for Entity or Component."""
+
+    uid: UUID
+    entity_id: UUID | None
 
 
 async def clear_inventory_async(logger: Optional[logging.Logger] = None) -> None:
@@ -107,10 +115,43 @@ def get_inventory_uid(obj: Any) -> None:
     NOTE: While this _could_ be on the registrar, it would require access to the
         registrar instance. This function assumes we want the global inventory.
     """
+    inventory = get_inventory()
     try:
-        return getattr(obj, _INVENTORY.uid_tag)
+        return getattr(obj, inventory.uid_tag)
     except AttributeError:
         raise UnregisteredAssetError(f"No uid for unregistered asset: {obj}")
+
+
+async def get_related_component(asset: Asset) -> Generator[Asset, None, None]:
+    """Given an asset, return related components.
+
+    Arguments:
+        asset: A component or entity.
+    Returns:
+        The components associated with the entity the asset is a part of.
+    """
+    # NOTE: Avoid singledispatch.
+    #   - It's fast, but it has an overhead, and this function can't afford it.
+    #   - Also, entity and component both use inventory, so there's a diamond
+    #       pattern; however, we can solve that by defining the registration
+    #       functions in the respective modules.
+    #   - We can't register "Component" -- it isnt' a class, so the base
+    #       function would have to handle components.
+    inventory = get_inventory()
+    if entity_uid := getattr(asset, "entity_uid", None):
+        entity, *_ = await inventory.get_by_uid(entity_uid)
+    else:
+        entity = asset
+
+    try:
+        components = entity.component
+    except AttributeError as err:
+        # It's not a component (no entity uid attr)
+        # It's a component, but not part of an entity (entity uid is None)
+        # It's not an entity (no component attr)
+        raise UnregisteredAssetError(f"unregistered asset: {asset}") from err
+
+    return await inventory.get_by_uid(*components)
 
 
 # __END__

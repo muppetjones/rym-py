@@ -2,6 +2,7 @@
 #   BE MINDFUL OF WHAT YOU PUT IN HERE.
 
 from . import core
+from .core import _inventory as inventory
 
 """Easy access to common decorators, classes, functions, etc.
 

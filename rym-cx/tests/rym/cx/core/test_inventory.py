@@ -6,6 +6,7 @@ from unittest import IsolatedAsyncioTestCase
 from unittest.mock import Mock
 
 import rym.cx.core._inventory as MOD
+from rym import cx
 from rym.cx.core.registrar import Registrar
 
 LOGGER = logging.getLogger(__name__)
@@ -23,8 +24,7 @@ class TestClearInventory(ThisTestCase):
     """Test function."""
 
     async def test_behavior(self) -> None:
-        class Foo:
-            ...
+        class Foo: ...
 
         one = MOD.get_inventory()
         one.add("x", Foo)
@@ -78,8 +78,7 @@ class TestGetInventoryId(ThisTestCase):
             MOD.get_inventory_uid("foo")
 
     async def test_returns_expected_value(self) -> None:
-        class Foo:
-            ...
+        class Foo: ...
 
         subject = MOD.get_inventory()
         instance = Foo()
@@ -88,6 +87,48 @@ class TestGetInventoryId(ThisTestCase):
         expected = instance.__cx_inv_uid__
         found = MOD.get_inventory_uid(instance)
         self.assertEqual(expected, found)
+
+
+class TestGetRelatedComponent(ThisTestCase):
+    """Test function.
+
+    NOTE: Requires entity and component to be imported for singledispatch register.
+    """
+
+    async def test_raises_if_object_not_registerd(self) -> None:
+        with self.assertRaisesRegex(ValueError, "unregistered"):
+            await MOD.get_related_component("foo")
+
+    async def test_returns_components_given_entity(self) -> None:
+        # NOTE: Relies too heavily on other patterns. Mocking works but only
+        #   with significant setup, which diultes the test.
+        # tl;dr: Relies in entity_uid and inventory lookup. The entities
+        #   and components are automatically added to the inventory
+        @cx.component
+        class Foo:
+            x: int
+
+        @cx.component
+        class Bar:
+            y: int
+
+        subject = [
+            [Foo(0), Bar(1)],
+            [Foo(3), Bar(4)],
+            [Bar(5)],
+        ]
+        entities = cx.spawn_entity(*subject)
+
+        tests = [
+            # (expected, given)
+            (subject[1], entities[1]),
+            (subject[1], subject[1][0]),
+            (subject[1], subject[1][1]),
+        ]
+        for expected, given in tests:
+            with self.subTest(given):
+                found = await MOD.get_related_component(given)
+                self.assertEqual(expected, found)
 
 
 # __END__
