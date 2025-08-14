@@ -70,4 +70,24 @@ class TestGetInventory(ThisTestCase):
         self.assertEqual(expected, found)
 
 
+class TestGetInventoryId(ThisTestCase):
+    """Test function."""
+
+    async def test_raises_if_object_not_registerd(self) -> None:
+        with self.assertRaisesRegex(ValueError, "unregistered"):
+            MOD.get_inventory_uid("foo")
+
+    async def test_returns_expected_value(self) -> None:
+        class Foo:
+            ...
+
+        subject = MOD.get_inventory()
+        instance = Foo()
+        subject.add(Foo, instance)
+
+        expected = instance.__cx_inv_uid__
+        found = MOD.get_inventory_uid(instance)
+        self.assertEqual(expected, found)
+
+
 # __END__

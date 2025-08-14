@@ -19,44 +19,14 @@ import dataclasses as dcs
 from functools import partial
 from typing import Optional, TypeVar
 
-from . import _catalog, _inventory
+from . import _catalog
 
 T = TypeVar("T")
 
 # High-level decorators
 # ======================================================================
-
-
-def component(klass: Optional[T] = None) -> T:
-    """Decorate a component class.
-
-    Example:
-        >>> from rym import cx
-        >>> @cx.component
-        ... class Health:
-        ...     max_hp: int
-        ...     current: int
-
-    """
-    return add_to_catalog(klass, namespace="component")
-
-
-def entity(klass: Optional[T] = None) -> T:
-    """Decorate a entity class.
-
-    Example:
-        >>> from rym import cx
-        >>> @cx.entity
-        ... class Monster:
-        ...     health: Health
-
-    """
-    if hasattr(klass, "__post_init__"):
-        raise TypeError("cannot wrap class with __post_init_ defined")
-
-    setattr(klass, "__post_init__", add_to_inventory_post_init)
-
-    return add_to_catalog(klass, namespace="entity")
+# See also:
+#   .component.component
 
 
 # Low-level decorator support
@@ -97,12 +67,6 @@ def add_to_catalog(
     # -- we want everything that this provides, even if this is a little too magic
     dklass = dcs.dataclass(klass)
     return dklass
-
-
-def add_to_inventory_post_init(self) -> None:
-    """Replacement for __post_init__."""
-    inventory = _inventory.get_inventory()
-    inventory.add(self.__class__.__name__, self)
 
 
 # Supporting functions

@@ -21,4 +21,8 @@ class NonUniqueValueError(ValueError):
     """Raise if value is insufficient to resolve to a single, registered item."""
 
 
+class UnregisteredAssetError(ValueError):
+    """Raise for issues related to registrar lookup for unregistered asset."""
+
+
 # __END__

@@ -16,8 +16,9 @@ NOTE: Not a big fan of "_global" as a name, but it is apt.
 """
 
 import logging
-from typing import Optional
+from typing import Any, Optional
 
+from .errors import UnregisteredAssetError
 from .registrar import Registrar
 
 _INVENTORY = None  # type: Registrar
@@ -96,6 +97,20 @@ def get_inventory() -> Registrar:
     if not _INVENTORY:
         _INVENTORY = Registrar(label="inv")
     return _INVENTORY
+
+
+def get_inventory_uid(obj: Any) -> None:
+    """Return inventory UID of an item.
+
+    The attribute name is determined by the registrar, so provide an easy lookup.
+
+    NOTE: While this _could_ be on the registrar, it would require access to the
+        registrar instance. This function assumes we want the global inventory.
+    """
+    try:
+        return getattr(obj, _INVENTORY.uid_tag)
+    except AttributeError:
+        raise UnregisteredAssetError(f"No uid for unregistered asset: {obj}")
 
 
 # __END__

@@ -54,6 +54,17 @@ class Registrar:
 
     _lock: ClassVar[asyncio.Lock] = asyncio.Lock()
 
+    # property
+    # ----------------------------------
+
+    @property
+    def namespace_tag(self) -> str:
+        return f"__cx_{self.label}_namespace__"
+
+    @property
+    def uid_tag(self) -> str:
+        return f"__cx_{self.label}_uid__"
+
     # add
     # ----------------------------------
 
@@ -111,8 +122,8 @@ class Registrar:
         self.lookup[namespace].append(record.uid)
 
         # Tag the item
-        setattr(value, f"__cx_{self.label}_uid__", record.uid)
-        setattr(value, f"__cx_{self.label}_namespace__", record.namespace)
+        setattr(value, self.uid_tag, record.uid)
+        setattr(value, self.namespace_tag, record.namespace)
 
         return record
 

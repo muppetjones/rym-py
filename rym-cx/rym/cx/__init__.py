@@ -3,14 +3,25 @@
 
 from . import core
 
-"""Easy access to decorators.
+"""Easy access to common decorators, classes, functions, etc.
 
 See also:
-    rym.cx.core.catalog
-    rym.cx.core._global
-    rym.cx.core.decorators
+    rym.cx.core._catalog
+    rym.cx.core._inventory
+    rym.cx.core.component
+    rym.cx.core.entity
 """
-from .core.decorator import component, entity
+from .core.component import Component, register_as_component
+from .core.entity import Entity
+from .core._inventory import get_inventory, get_inventory_uid
+from .core._catalog import get_catalog
+
+
+"""Aliases.
+
+Define aliases for easier use.
+"""
+component = register_as_component
 
 
 """Placeholders for functional tests.
@@ -29,3 +40,5 @@ clear_all = MagicMock()
 get_archetype_id = MagicMock()
 get_component_id = MagicMock()
 get_entity_id = MagicMock()
+spawn = MagicMock()
+retrieve_by = MagicMock()

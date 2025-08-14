@@ -22,7 +22,7 @@ class RegisterRecord(Protocol[T]):
     uid: UUID
 
     @classmethod
-    def new(cls, namespace: str, value: Any) -> "RegisterRecord":
+    def new(cls, namespace: str, value: Any) -> "RegisterRecord":  # pragma: no cover
         ...
 
 
