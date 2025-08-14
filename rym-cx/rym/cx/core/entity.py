@@ -3,11 +3,11 @@
 
 import dataclasses as dcs
 import logging
-from typing import TypeVar
+from typing import ClassVar, TypeVar
 from uuid import UUID
 
 from . import _inventory
-from .component import Component
+from .component import _ENTITY_UID_TAG, Component
 
 LOGGER = logging.getLogger(__name__)
 
@@ -16,14 +16,17 @@ T = TypeVar("T")
 
 @dcs.dataclass
 class Entity:
-    """Define entity object."""
+    """Define an entity object.
+
+    NOTE: Entity is little more than a struct. Prefer a functional paradigm over OO.
+
+    Attributes:
+        component: A tuple of component UIDs.
+    """
 
     component: tuple[Component]
 
-    @classmethod
-    def new(cls, *args) -> "Entity":
-        """Create new instance."""
-        return cls(component=args)
+    reference_tag: ClassVar[str] = _ENTITY_UID_TAG
 
     def __post_init__(self) -> None:
         """Initialize and link."""

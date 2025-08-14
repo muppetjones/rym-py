@@ -2,6 +2,7 @@
 """."""
 
 
+import itertools
 from collections.abc import Callable
 from typing import Optional, Protocol, TypeVar
 from uuid import UUID
@@ -11,6 +12,7 @@ from rym.cx.core import _inventory
 from .decorator import add_to_catalog
 
 T = TypeVar("T")
+_ENTITY_UID_TAG = "__cx_entity_uid__"
 
 
 class Component(Protocol):
@@ -35,11 +37,15 @@ def register_as_component(klass: Optional[T] = None) -> T:
         add_to_inventory,
     ]
 
-    attr = [
+    attrs = [
+        (_ENTITY_UID_TAG, None),
+    ]
+    methods = [
         ("__post_init__", call_each(*setup_func)),
         ("uid", property(attr_uid)),
+        ("entity_uid", property(attr_entity_uid)),
     ]
-    for name, asset in attr:
+    for name, asset in itertools.chain(attrs, methods):
         setattr(klass, name, asset)
 
     return add_to_catalog(klass, namespace="component")
@@ -63,6 +69,10 @@ def call_each(*args: Callable[..., None]) -> Callable[..., None]:
 
 # Unbound methods
 # ----------------------------------
+
+
+def attr_entity_uid(self) -> UUID:
+    return getattr(self, _ENTITY_UID_TAG)
 
 
 def attr_uid(self) -> UUID:

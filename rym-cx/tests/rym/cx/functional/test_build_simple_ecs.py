@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Test."""
 
+import itertools
 import logging
 from typing import Iterable, TypeVar
 from unittest import IsolatedAsyncioTestCase
+from unittest.mock import Mock
 
 from rym import cx
 from rym.cx.core import _catalog, _inventory
@@ -28,8 +30,8 @@ def setUpModule() -> None:
 
 
 def tearDownModule() -> None:
-    _catalog.clear_catalog()
-    _inventory.clear_inventory()
+    _catalog.clear_catalog(logger=Mock())
+    _inventory.clear_inventory(logger=Mock())
 
 
 # ----------------------------------
@@ -89,19 +91,19 @@ class Plant:
 # Kate creates some initial entities to test with.
 
 # Kate starts the player at the center of the screen with full health
-player = cx.spawn(
+player = cx.spawn_entity(
     (Player(), Health(100, 100), Location(0, 0)),
 )
 
 # She then adds three plants ...
-plants = cx.spawn(
+plants = cx.spawn_entity(
     (Plant(), Location(1, 2)),
     (Plant(), Location(0, 3)),
     (Plant(), Location(-1, -3)),
 )
 
 # ... and two monsters, one of which is already injured
-monsters = cx.spawn(
+monsters = cx.spawn_entity(
     (Monster(), Location(-1, 2), Health(40, 40)),
     (Monster(), Location(-2, 1), Health(40, 30)),
 )
@@ -144,8 +146,11 @@ class TestBehavior(ThisTestCase):
         entities = await inventory.get_by_namespace(cx.Entity)
 
         with self.subTest("matching entities retrieved"):
-            found = set(entities)
-            expected = set(plants + player + monsters)
+            # NOTE: Entity is not safely hashable.
+            found = sorted([x.uid for x in entities])
+            expected = sorted(
+                [x.uid for x in itertools.chain(player, plants, monsters)]
+            )
             self.assertEqual(expected, found)
 
     async def test_each_component_added_to_inventory(self) -> None:

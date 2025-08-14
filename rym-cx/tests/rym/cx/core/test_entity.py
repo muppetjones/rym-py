@@ -25,11 +25,9 @@ class TestEntity(ThisTestCase):
     """Test dataclass."""
 
     async def test_registers_in_inventory(self) -> None:
-        instance1 = MOD.Entity.new(
-            3, 141592
-        )  # shouldn't matter when we get the inventory
+        instance1 = MOD.Entity([3, 141592])  # shouldn't matter when created
         inventory = _inventory.get_inventory()
-        instance2 = MOD.Entity.new(867, 5309)  # before or after -- should be registered
+        instance2 = MOD.Entity([867, 5309])  # before or after -- should be registered
 
         with self.subTest("adds to inventory"):
             found = await inventory.get_by_namespace(MOD.Entity)
