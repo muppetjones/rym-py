@@ -63,7 +63,7 @@ def _load_pkg(names: Iterable[str]):
 
 toml = _load_pkg(
     [
-        "tomllib",  # py 3.11+
+        # "tomllib",  # py 3.11+; does NOT support dump
         "tomlkit",  # style-preserving
         "toml",
     ]
@@ -133,9 +133,7 @@ class AliasResolver:
 
     def _build_lookup_index(self) -> None:
         """Index alias lookup."""
-        self._lookup = {
-            k: i for i, x in enumerate(self.aliases) for k in x.all_names()
-        }
+        self._lookup = {k: i for i, x in enumerate(self.aliases) for k in x.all_names()}
         self._attempts = defaultdict(int, {k: 0 for k in self._lookup.keys()})
 
     def add(
@@ -302,9 +300,7 @@ def _(value: Path) -> Generator[Alias, None, None]:
 
     func = cases.get(value.suffix)
     if not func:
-        raise ValueError(
-            f"unavailable encoding: {value.suffix} ({value})"
-        ) from None
+        raise ValueError(f"unavailable encoding: {value.suffix} ({value})") from None
 
     content = value.read_text()
     data = func(content)
