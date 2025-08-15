@@ -53,7 +53,7 @@ jobs:
       run: |
         pdm test --junitxml=junit/${{ inputs.package }}-${{ matrix.python-version }}.xml
     - name: Upload pytest test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results-${{ inputs.package }}-${{ matrix.python-version }}.xml
         # does NOT use working-directory
@@ -86,7 +86,7 @@ jobs:
         run: >-
           python -m build --sdist --wheel --outdir dist/ .
       - name: Upload wheel
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "${{ inputs.package }}-${{ matrix.os }}.whl"
           path: ${{ inputs.package }}/dist/*
