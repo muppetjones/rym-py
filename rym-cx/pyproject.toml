@@ -30,7 +30,7 @@ exclude = ["tests", "notebooks"]
 include = ["rym"]
 
 [tool.hatch.version]
-path = "rym/token/__about__.py"
+path = "rym/cx/__about__.py"
 
 [tool.pdm]
 [tool.pdm.scripts]
