@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Test."""
 
+import copy
 import itertools
-import logging
 from typing import Iterable, TypeVar
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import Mock
@@ -12,34 +12,22 @@ from rym.cx.core import _catalog, _inventory
 
 T = TypeVar("T")
 
-LOGGER = logging.getLogger(__name__)
 
 # Setup
 # ======================================================================
 # NOTE: We MUST define the EC instances prior to testing to allow each
 #   test access to the entities and compontents. We _could_ make one big
 #   test case, but that would be difficult to manage (and smelly).
+# CRITICAL: We MUST store the state and reload it during class setup.
 # tl;dr: Define basic classes here. Test usage below.
 
 
-def setUpModule() -> None:
-    # NOTE: Do NOT clear on setup. This function runs _after_ the module is imported.
-    # _catalog.clear_catalog()
-    # _inventory.clear_inventory()
-    pass
-
-
-def tearDownModule() -> None:
-    _catalog.clear_catalog(logger=Mock())
-    _inventory.clear_inventory(logger=Mock())
-
-
 # ----------------------------------
-# Kate is designing a simple game.
+# Kate is designing a simple dungeon crawler.
 # She knows she'll need to track location and health of various
-# entities. It's a t 2D game, so she'll only need an x and y axis.
+# entities. It's a 2D game, so she'll only need an x and y axis.
 # And for now, she'll only track total and current number of HP.
-# By default, health should always start at "full"
+# She wants to support poison damage, too.
 
 
 @cx.component
@@ -58,6 +46,12 @@ class Health:
         return round(100 * (self.current / self.total), 2)
 
 
+@cx.component
+class Poison:
+    damage: int
+    duration: int
+
+
 # ----------------------------------
 # Kate knows she needs two basic archetypes: Animate and Inanimate.
 # For now, inanimate objects only have a location while animate objects need
@@ -72,18 +66,17 @@ Animate = cx.Archetype(Location, Health)
 
 
 @cx.component
-class Player:
-    ...
+class Plant:
+    name: str = "ficus"
+
+
+@cx.component
+class Player: ...
 
 
 @cx.component
 class Monster:
-    ...
-
-
-@cx.component
-class Plant:
-    ...
+    name: str = "monster"
 
 
 # section
@@ -105,19 +98,34 @@ plants = cx.spawn_entity(
 # ... and two monsters, one of which is already injured
 monsters = cx.spawn_entity(
     (Monster(), Location(-1, 2), Health(40, 40)),
-    (Monster(), Location(-2, 1), Health(40, 30)),
+    (Monster(), Location(-2, 1), Health(40, 30), Poison(5, 3)),
 )
 
-
 # ----------------------------------
-# Kate wants to be able to retrieve injured entites
+# Kate wants a system that can periodically apply poison damage to any
+# poisoned entity.
 
 
-@cx.retrieve_by(Health)
-def get_injured(components: Iterable[T]) -> Iterable[T]:
-    injured = [x.entity_id for x in components if x.current > x.total]
-    return injured
+@cx.retrieve(poisoned=(Health, Poison))
+async def tick_poison_damage(poisoned: Iterable[tuple[Health, Poison]]) -> None:
+    """Reduce health by poison amount on each tick.
 
+    TODO: Remove Poisoned component once duration is complete once component
+        removal is supported,
+    """
+    for health, poison in poisoned:
+        if health.current > 0 and poison.duration > 0:
+            health.current = max(0, health.current - poison.damage)
+            poison.duration -= 1
+
+
+# Save inventory and catalog
+# ======================================================================
+# CRITICAL: Both are setup when the module is loaded. The state is NOT
+#   persistent for the test suite
+
+_INVENTORY = copy.deepcopy(_inventory._INVENTORY)
+_CATALOG = copy.deepcopy(_catalog._CATALOG)
 
 # Tests
 # ======================================================================
@@ -126,13 +134,21 @@ def get_injured(components: Iterable[T]) -> Iterable[T]:
 class ThisTestCase(IsolatedAsyncioTestCase):
     """Base test case for the module."""
 
+    @classmethod
+    def setUpClass(cls) -> None:
+        # NOTE: Restore the module state
+        cx.clear_registrar(logger=Mock())
+        _inventory._INVENTORY = _INVENTORY
+        _catalog._CATALOG = _CATALOG
+        cls.addClassCleanup(cx.clear_registrar, logger=Mock())
+
 
 class TestBehavior(ThisTestCase):
     """Test behavior."""
 
     async def test_each_component_registered_in_catalog(self) -> None:
         # Kate checks that the components types have been registered
-        expected = {Health, Location, Plant, Player, Monster}
+        expected = {Health, Location, Poison, Plant, Player, Monster}
         catalog = cx.get_catalog()
         assets = await catalog.get_by_namespace("component")
         found = set(assets)
@@ -159,26 +175,31 @@ class TestBehavior(ThisTestCase):
         inventory = cx.get_inventory()
         entities = await inventory.get_by_namespace(cx.Entity)
         for entity in entities:
-            related = inventory.get_related(entity)
+            related = await _inventory.get_related_component(entity)
 
             with self.subTest("all components in inventory"):
                 found = {x.uid for x in related}
-                expected = entity.components
+                expected = set(entity.component)
                 self.assertEqual(expected, found)
 
-            with self.subTest("each component linked to entity"):
-                found = {x.entity_id for x in entity.components}
-                expected = set(entity.uid)
-                self.assertEqual(expected, found)
+            with self.subTest(f"each component linked to entity: {related}"):
+                found = set(x.entity_uid for x in related)
+                expected = {entity.uid}
+                self.assertEqual(expected, found, f"{expected} != {found}")
 
-    async def test_get_injured(self) -> None:
-        # With everything setup, Kate wants to check that her first lookup works.
-        # She knows she'll be able to use a lookup expression later, but for now,
-        # she's only interested in a small test.
-        inventory = cx.get_inventory()
-        health = await inventory.get_by_namespace(Health)
-        found = get_injured()
-        expected = [x.entity_id for x in health if x.percentage < 100]
+    async def test_poison_damage(self) -> None:
+        # Kate wants to have a system that will periodically deal damage to any
+        # poisoned entities. The system shouldn't take entity below 0 health,
+        # and the person should not continue to take damage once the poison
+        # duration has ended.
+        health, poison = (await _inventory.retrieve_by_component(Health, Poison))[0]
+        status = [(health.current, poison.duration)]
+        for _ in range(4):
+            await tick_poison_damage()
+            status.append((health.current, poison.duration))
+
+        found = status
+        expected = [(30, 3), (25, 2), (20, 1), (15, 0), (15, 0)]
         self.assertEqual(expected, found)
 
 

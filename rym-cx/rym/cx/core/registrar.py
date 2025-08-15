@@ -114,7 +114,7 @@ class Registrar:
         if not existing:
             pass  # new addition; no action
         elif existing == record:
-            pass  # duplicate; no action
+            return  # EARLY EXIT: duplicate
         else:
             raise NonUniqueValueError(f"value exists in namespace: {record}")
 

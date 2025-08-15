@@ -2,7 +2,6 @@
 """."""
 
 
-import itertools
 from collections.abc import Callable
 from typing import Optional, Protocol, TypeVar
 from uuid import UUID
@@ -30,6 +29,7 @@ def register_as_component(klass: Optional[T] = None) -> T:
         ...     current: int
 
     """
+    inventory = _inventory.get_inventory()
 
     setup_func = [
         # NOTE: MUST call base post-init FIRST to resolve user defs, e.g., init=False
@@ -38,14 +38,20 @@ def register_as_component(klass: Optional[T] = None) -> T:
     ]
 
     attrs = [
-        (_ENTITY_UID_TAG, None),
+        (_ENTITY_UID_TAG, str, None),
+        (inventory.uid_tag, UUID, None),
     ]
+    for name, annotation, default in attrs:
+        # NOTE: MUST update annotations to allow dataclass to track the field
+        klass.__annotations__[name] = annotation
+        setattr(klass, name, default)
+
     methods = [
         ("__post_init__", call_each(*setup_func)),
         ("uid", property(attr_uid)),
         ("entity_uid", property(attr_entity_uid)),
     ]
-    for name, asset in itertools.chain(attrs, methods):
+    for name, asset in methods:
         setattr(klass, name, asset)
 
     return add_to_catalog(klass, namespace="component")

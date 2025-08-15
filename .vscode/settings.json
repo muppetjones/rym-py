@@ -1,0 +1,8 @@
+{
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/rym-alias",
+        "${workspaceFolder}/rym-cx",
+        "${workspaceFolder}/rym-lpath",
+        "${workspaceFolder}/rym-token",
+    ]
+}

@@ -16,20 +16,15 @@ NOTE: Archetype doesn't have a decorator. It _could_, but that would limit
 
 
 import dataclasses as dcs
-from functools import partial
+from collections.abc import Callable, Iterable
+from functools import partial, wraps
 from typing import Optional, TypeVar
 
-from . import _catalog
+from . import _catalog, _inventory
 
 T = TypeVar("T")
 
-# High-level decorators
-# ======================================================================
-# See also:
-#   .component.component
-
-
-# Low-level decorator support
+# Add to catalog
 # ======================================================================
 
 
@@ -69,8 +64,37 @@ def add_to_catalog(
     return dklass
 
 
-# Supporting functions
+# Retrieve By
 # ======================================================================
+
+
+def retrieve(
+    func: Optional[Callable[..., T]] = None, **component_groups: Iterable[T]
+) -> Callable:
+    """Lookup entities with commonents and pass into wrapped function.
+
+    TODO: Sleep now, then figure out how to describe this more clearly.
+
+    Arguments:
+        func: The function being wrapped.
+        **kwargs: One or more component classes to match against.
+    Returns:
+        The wrapped function.
+    """
+    if func is None:
+        return partial(retrieve, **component_groups)
+
+    @wraps(func)
+    async def _wrapper(*args, **kwargs) -> T:
+        kwargs.update(
+            {
+                k: await _inventory.retrieve_by_component(*v)
+                for k, v in component_groups.items()
+            }
+        )
+        return await func(*args, **kwargs)
+
+    return _wrapper
 
 
 # __END__

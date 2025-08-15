@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Test system parameters."""
 
-import logging
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import Mock
 
@@ -9,15 +8,13 @@ import rym.cx.core._inventory as MOD
 from rym import cx
 from rym.cx.core.registrar import Registrar
 
-LOGGER = logging.getLogger(__name__)
-
 
 class ThisTestCase(IsolatedAsyncioTestCase):
     """Base test case for the module."""
 
     async def asyncSetUp(self) -> None:
-        await MOD.clear_inventory_async(Mock())
-        self.addCleanup(MOD.clear_inventory_async, Mock())
+        await cx.clear_registrar_async(Mock())
+        self.addCleanup(cx.clear_registrar_async, Mock())
 
 
 class TestClearInventory(ThisTestCase):
@@ -129,6 +126,41 @@ class TestGetRelatedComponent(ThisTestCase):
             with self.subTest(given):
                 found = await MOD.get_related_component(given)
                 self.assertEqual(expected, found)
+
+
+class TestRetrieveByComponent(ThisTestCase):
+    """Test function."""
+
+    async def test_returns_matching_components_by_entity(self) -> None:
+        @cx.component
+        class Foo:
+            x: int
+
+        @cx.component
+        class Bar:
+            y: int
+
+        @cx.component
+        class Baz:
+            z: int
+
+        subject = [
+            [Foo(6)],
+            [Foo(0), Bar(1), Baz(8)],
+            [Foo(3), Bar(4)],
+            [Bar(5)],
+        ]
+        _ = cx.spawn_entity(*subject)
+
+        found = await MOD.retrieve_by_component(Bar, Foo)
+        expected = sorted(
+            [
+                [subject[1][1], subject[1][0]],
+                [subject[2][1], subject[2][0]],
+            ],
+            key=lambda x: x[0].entity_uid,
+        )
+        self.assertEqual(expected, found)
 
 
 # __END__

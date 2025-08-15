@@ -18,6 +18,8 @@ from .core.entity import Entity
 from .core._inventory import get_inventory, get_inventory_uid
 from .core._catalog import get_catalog
 from .core.spawn import spawn_entity
+from .core.teardown import clear_registrar, clear_registrar_async
+from .core.decorator import retrieve
 
 
 """Aliases.
@@ -37,10 +39,5 @@ from unittest.mock import MagicMock
 
 
 Archetype = MagicMock()
-get_entities = MagicMock()
-clear_all = MagicMock()
 
 get_archetype_id = MagicMock()
-get_component_id = MagicMock()
-get_entity_id = MagicMock()
-retrieve_by = MagicMock()

@@ -23,10 +23,20 @@ class ThisTestCase(IsolatedAsyncioTestCase):
 class TestComponentDecorator(ThisTestCase):
     """Test decorator."""
 
+    async def test_equal_components_still_unique_objects(self) -> None:
+        @MOD.register_as_component
+        class Foo: ...
+
+        instance = [Foo(), Foo()]
+        inventory = _inventory.get_inventory()
+
+        subject = await inventory.get_by_namespace(Foo)
+        for expected, found in zip(instance, subject):
+            self.assertIs(expected, found)
+
     async def test_adds_to_catalog_under_namespace(self) -> None:
         @MOD.register_as_component
-        class Foo:
-            ...
+        class Foo: ...
 
         subject = _catalog.get_catalog()
 

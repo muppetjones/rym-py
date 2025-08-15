@@ -19,6 +19,8 @@ import logging
 from typing import Any, Generator, Optional, Protocol
 from uuid import UUID
 
+from rym.cx.core.record import InventoryRecord
+
 from .errors import UnregisteredAssetError
 from .registrar import Registrar
 
@@ -103,7 +105,7 @@ def get_inventory() -> Registrar:
     """
     global _INVENTORY
     if not _INVENTORY:
-        _INVENTORY = Registrar(label="inv")
+        _INVENTORY = Registrar(label="inv", _Record=InventoryRecord)
     return _INVENTORY
 
 
@@ -152,6 +154,35 @@ async def get_related_component(asset: Asset) -> Generator[Asset, None, None]:
         raise UnregisteredAssetError(f"unregistered asset: {asset}") from err
 
     return await inventory.get_by_uid(*components)
+
+
+async def retrieve_by_component(*args: Asset) -> list[list[Asset]]:
+    """Retrieve partial entities based on given component types.
+
+    CRITICAL: Assumes each component type is unique per entity.
+        Fine for now, but probably not ideal.
+
+    Arguments:
+        *args: One or more component types.
+    Returns:
+        Matching components by entity.
+    """
+    inventory = get_inventory()
+
+    # this will be lossy if an entity has multiple of a component type
+    matched_components = [
+        {y.entity_uid: y for y in await inventory.get_by_namespace(x)} for x in args
+    ]
+
+    components = await inventory.get_by_namespace(args[0])
+
+    # find common entities
+    entity_ids = set(matched_components[0].keys())
+    for components in matched_components[1:]:
+        entity_ids &= set(components.keys())
+
+    matches = [[x[uid] for x in matched_components] for uid in sorted(entity_ids)]
+    return matches
 
 
 # __END__
