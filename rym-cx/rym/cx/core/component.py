@@ -6,7 +6,7 @@ Declare Components via Decorator
 This decorator is aliased in the root package as `cx.component`.
 
 Features
-^^^^^^^
+^^^^^^^^
 
 - Catalogs the class as a component.
 - Adds "uid" and "entity_uid" properties.
