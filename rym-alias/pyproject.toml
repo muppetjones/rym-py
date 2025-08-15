@@ -29,53 +29,13 @@ toml = [ "toml>=0.10.2" ]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch]
 [tool.hatch.build]
 exclude = ["tests", "notebooks"]
 include = ["rym"]
 
 [tool.hatch.version]
 path = "rym/alias/__about__.py"
-
-[tool.pytest.ini_options]
-minversion = "7.0"
-addopts = [
-    "-ra -vvv",
-    "--cov=rym",
-    "--cov-report term-missing",
-    "--import-mode=importlib",
-]
-pythonpath = ["."]
-testpaths = ["tests"]
-
-[tool.black]
-line-length = 83
-target-version = ["py38", "py39", "py310"]
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
-
-[tool.isort]
-profile = "black"
-atomic = true
-line_length = 83
-float_to_top = true
-skip_glob = "**/__init__.py"
-
-[tool.ruff]
-ignore = []
-line-length = 88
-select = ["E","F","W"]
 
 [tool.pdm]
 [tool.pdm.scripts]
@@ -113,3 +73,44 @@ omit = [
 
 [tool.coverage.report]
 show_missing = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = '''
+--import-mode=importlib -ra
+-vvv
+--cov=rym
+'''
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.black]
+line-length = 88
+target-version = ["py38", "py39", "py310"]
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+atomic = true
+line_length = 88
+float_to_top = true
+skip_glob = "**/__init__.py"
+
+[tool.ruff]
+ignore = []
+line-length = 88
+select = ["E","F","W"]
+exclude = ['__init__.py']
