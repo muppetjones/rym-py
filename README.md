@@ -14,6 +14,10 @@ multiple different packages or package versions.
   - [![PyPI - Version](https://img.shields.io/pypi/v/rym-alias.svg)](https://pypi.org/project/rym-alias)
   - [Documentation](https://muppetjones.github.io/rym-py/rym-alias)
 
+- `rym-cx`
+  - [![PyPI - Version](https://img.shields.io/pypi/v/rym-cx.svg)](https://pypi.org/project/rym-cx)
+  - [Documentation](https://muppetjones.github.io/rym-py/rym-cx)
+
 - `rym-lpath`
   - [![PyPI - Version](https://img.shields.io/pypi/v/rym-lpath.svg)](https://pypi.org/project/rym-lpath)
   - [Documentation](https://muppetjones.github.io/rym-py/rym-lpath)
