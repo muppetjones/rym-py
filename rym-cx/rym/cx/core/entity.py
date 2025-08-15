@@ -1,5 +1,19 @@
 #!/usr/bin/env python3
-"""."""
+"""
+Spawn an Entity
+^^^^^^^^^^^^^^^^
+
+Never use cx.Entity directly. It's provided only for type hints. Instead, use
+`cx.spawn_entity`
+
+>>> from rym import cx
+>>> @cx.component
+... class Foo: ...
+...
+>>> cx.spawn_entity((Foo(), ))
+[Entity(component=(UUID('4e818f68-299c-4807-bd2b-5d36bd17cc1d'),))]
+
+"""
 
 import dataclasses as dcs
 import logging

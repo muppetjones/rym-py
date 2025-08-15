@@ -19,7 +19,10 @@ def _add_namespaces_to_sys_path():
     root = Path(*parts[:index]).resolve()
     if Path(root, "rym-py").is_dir():
         root = Path(root, "rym-py")
-    paths = [str(Path(root, x)) for x in ("rym-lpath", "rym-alias", "rym-token")]
+    paths = [
+        str(Path(root, x))
+        for x in ("rym-lpath", "rym-alias", "rym-token", "rym-cx")
+    ]
     sys.path.extend(paths)
 
 

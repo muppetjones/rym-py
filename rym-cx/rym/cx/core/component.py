@@ -1,5 +1,28 @@
 #!/usr/bin/env python3
-"""."""
+"""
+Declare Components via Decorator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This decorator is aliased in the root package as `cx.component`.
+
+Features
+^^^^^^^
+
+- Catalogs the class as a component.
+- Adds "uid" and "entity_uid" properties.
+- Converts to a dataclass.
+- Auto-registers instances in the inventory.
+
+Example
+^^^^^^^
+
+>>> from rym import cx
+>>> @cx.component
+... class Health:
+...     max_hp: int
+...     current: int
+
+"""
 
 
 from collections.abc import Callable
@@ -21,13 +44,15 @@ class Component(Protocol):
 def register_as_component(klass: Optional[T] = None) -> T:
     """Decorate a component class.
 
-    Example:
-        >>> from rym import cx
-        >>> @cx.component
-        ... class Health:
-        ...     max_hp: int
-        ...     current: int
+    - Integrates with ECS inventory, including attribuets and post-init updates.
+    - Converts to dataclass
 
+    Arguments:
+        klass: The class to decorate.
+    Returns:
+        The modified class as a dataclass.
+    See also:
+        rym.cx.core.decorators.add_to_catalog
     """
     inventory = _inventory.get_inventory()
 

@@ -13,6 +13,7 @@ multiple different packages or package versions.
    :caption: Contents:
 
    rym-alias
+   rym-cx
    rym-lpath
    rym-token
 
