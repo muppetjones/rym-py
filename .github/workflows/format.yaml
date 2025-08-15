@@ -21,10 +21,11 @@ jobs:
       markdown_files: ${{ steps.filter.outputs.markdown_files }}
       file_types: ${{ steps.filter.outputs.changes }}
     permissions:
+      contents:read
       pull-requests: read
     steps:
     # For pull requests it's not necessary to checkout the code
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -59,7 +60,7 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: "format-py: black and isort"
-  # NOTE: Not working -- "markdownlint not found"
+  # NOTE: Should work now -- updated from wosking version -- test later
   # markdown:
   #   needs: change-matrix
   #   if: ${{ needs.change-matrix.outputs.markdown == 'true' }}
@@ -68,9 +69,14 @@ jobs:
   #     - uses: actions/checkout@v3
   #     - uses: actions/setup-node@v3
   #       with:
-  #         cache: 'npm'
-  #     - name: npm
-  #       run: npm install markdownlint
+  #         node-version: "14.x"
+  #     - name: Cache node
+  #       uses: actions/cache@v3
+  #       env:
+  #         cache-name: cache-node-modules
+  #       with:
+  #         path: ~/.npm
+  #         key: ${{ runner.os }}-build-${{ env.cache-name }}
   #     - name: markdownlint
   #       run: markdownlint --fix ${{ needs.change-matrix.outputs.markdown_files }}
   #     - uses: stefanzweifel/git-auto-commit-action@v4

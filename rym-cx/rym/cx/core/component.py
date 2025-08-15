@@ -3,7 +3,7 @@
 
 
 from collections.abc import Callable
-from typing import Optional, Protocol, TypeVar
+from typing import Any, Iterable, Optional, Protocol, TypeVar
 from uuid import UUID
 
 from rym.cx.core import _inventory
@@ -41,10 +41,7 @@ def register_as_component(klass: Optional[T] = None) -> T:
         (_ENTITY_UID_TAG, str, None),
         (inventory.uid_tag, UUID, None),
     ]
-    for name, annotation, default in attrs:
-        # NOTE: MUST update annotations to allow dataclass to track the field
-        klass.__annotations__[name] = annotation
-        setattr(klass, name, default)
+    set_attr_safely(klass, attrs)
 
     methods = [
         ("__post_init__", call_each(*setup_func)),
@@ -90,6 +87,40 @@ def add_to_inventory(self) -> None:
     # track this instance!
     inventory = _inventory.get_inventory()
     inventory.add(self.__class__.__name__, self)
+
+
+# Python Quirks
+# ======================================================================
+
+
+def set_attr_safely(
+    klass: Callable,
+    attrs: Iterable[tuple[str, str, Any]],
+) -> None:
+    """Set attributes on a future dataclass.
+
+    Dataclasses use __annotations__ to define fields. If we want these fields
+    to be included in the dataclass definition(we do), then we must provide
+    annotations. Unfortunately, this is a bit trickier in python 3.9.
+
+    See also:
+        https://docs.python.org/3/howto/annotations.html
+    """
+
+    if isinstance(klass, type):
+        ann = klass.__dict__.get("__annotations__", None)
+    else:
+        ann = getattr(klass, "__annotations__", None)
+
+    if ann is None:
+        # Starting annotations is the same for both
+        ann = {}
+        setattr(klass, "__annotations__", ann)
+
+    for name, annotation, default in attrs:
+        # NOTE: MUST update annotations to allow dataclass to track the field
+        ann[name] = annotation
+        setattr(klass, name, default)
 
 
 # __END__

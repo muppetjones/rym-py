@@ -31,7 +31,7 @@ class Asset(Protocol):
     """Generic protocol for Entity or Component."""
 
     uid: UUID
-    entity_id: UUID | None
+    entity_id: Optional[UUID]
 
 
 async def clear_inventory_async(logger: Optional[logging.Logger] = None) -> None:
