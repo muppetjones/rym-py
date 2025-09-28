@@ -3,7 +3,7 @@ name = "rym-token"
 dynamic = ["version"]
 description = "A python library for tokenizing text."
 authors = [
-    {name = "Stephen Bush", email = "muppetjones@gmail.com"},
+    {name = "Stephen Bush", email = "2041619+muppetjones@users.noreply.github.com"},
 ]
 dependencies = []
 requires-python = ">=3.8"
