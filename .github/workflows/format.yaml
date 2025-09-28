@@ -21,7 +21,7 @@ jobs:
       markdown_files: ${{ steps.filter.outputs.markdown_files }}
       file_types: ${{ steps.filter.outputs.changes }}
     permissions:
-      contents:read
+      contents: read
       pull-requests: read
     steps:
     # For pull requests it's not necessary to checkout the code
