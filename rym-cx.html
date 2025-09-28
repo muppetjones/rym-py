@@ -1,0 +1,370 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>rym-cx &mdash; rym  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="rym-lpath" href="rym-lpath.html" />
+    <link rel="prev" title="rym-alias" href="rym-alias.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            rym
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="rym-alias.html"><cite>rym-alias</cite></a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#"><cite>rym-cx</cite></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-rym.cx.core.component">Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#declare-components-via-decorator">Declare Components via Decorator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#features">Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#spawn-an-entity">Spawn an Entity</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-rym.cx">API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#rym.cx.Component"><code class="docutils literal notranslate"><span class="pre">Component</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rym.cx.Entity"><code class="docutils literal notranslate"><span class="pre">Entity</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#rym.cx.Entity.component"><code class="docutils literal notranslate"><span class="pre">Entity.component</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#rym.cx.Entity.__post_init__"><code class="docutils literal notranslate"><span class="pre">Entity.__post_init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#rym.cx.Entity.uid"><code class="docutils literal notranslate"><span class="pre">Entity.uid</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#rym.cx.MagicMock"><code class="docutils literal notranslate"><span class="pre">MagicMock</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#rym.cx.MagicMock.mock_add_spec"><code class="docutils literal notranslate"><span class="pre">MagicMock.mock_add_spec()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#rym.cx.MagicMock.reset_mock"><code class="docutils literal notranslate"><span class="pre">MagicMock.reset_mock()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#rym.cx.clear_registrar"><code class="docutils literal notranslate"><span class="pre">clear_registrar()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rym.cx.clear_registrar_async"><code class="docutils literal notranslate"><span class="pre">clear_registrar_async()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rym.cx.component"><code class="docutils literal notranslate"><span class="pre">component()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rym.cx.get_catalog"><code class="docutils literal notranslate"><span class="pre">get_catalog()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rym.cx.get_inventory"><code class="docutils literal notranslate"><span class="pre">get_inventory()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rym.cx.get_inventory_uid"><code class="docutils literal notranslate"><span class="pre">get_inventory_uid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rym.cx.register_as_component"><code class="docutils literal notranslate"><span class="pre">register_as_component()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rym.cx.retrieve"><code class="docutils literal notranslate"><span class="pre">retrieve()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rym.cx.spawn_entity"><code class="docutils literal notranslate"><span class="pre">spawn_entity()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rym-lpath.html"><cite>rym-lpath</cite></a></li>
+<li class="toctree-l1"><a class="reference internal" href="rym-token.html"><cite>rym-token</cite></a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">rym</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><cite>rym-cx</cite></li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/muppetjones/rym-py/blob/main/source/rym-cx.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="rym-cx">
+<h1><cite>rym-cx</cite><a class="headerlink" href="#rym-cx" title="Link to this heading"></a></h1>
+<p>The <cite>cx</cite> module implements an ECS in python. This module is POC and is not
+yet feature complete.</p>
+<p>&gt; Note: The ESC inventory needs some cleanup. It’s a critical piece of the
+&gt; design, but it’s clunky to access. It also needs some better documentation.</p>
+<section id="module-rym.cx.core.component">
+<span id="usage"></span><h2>Usage<a class="headerlink" href="#module-rym.cx.core.component" title="Link to this heading"></a></h2>
+<section id="declare-components-via-decorator">
+<h3>Declare Components via Decorator<a class="headerlink" href="#declare-components-via-decorator" title="Link to this heading"></a></h3>
+<p>This decorator is aliased in the root package as <cite>cx.component</cite>.</p>
+</section>
+<section id="features">
+<h3>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Catalogs the class as a component.</p></li>
+<li><p>Adds “uid” and “entity_uid” properties.</p></li>
+<li><p>Converts to a dataclass.</p></li>
+<li><p>Auto-registers instances in the inventory.</p></li>
+</ul>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">rym</span><span class="w"> </span><span class="kn">import</span> <span class="n">cx</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@cx</span><span class="o">.</span><span class="n">component</span>
+<span class="gp">... </span><span class="k">class</span><span class="w"> </span><span class="nc">Health</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">max_hp</span><span class="p">:</span> <span class="nb">int</span>
+<span class="gp">... </span>    <span class="n">current</span><span class="p">:</span> <span class="nb">int</span>
+</pre></div>
+</div>
+</section>
+<section id="spawn-an-entity">
+<span id="module-rym.cx.core.entity"></span><h3>Spawn an Entity<a class="headerlink" href="#spawn-an-entity" title="Link to this heading"></a></h3>
+<p>Never use cx.Entity directly. It’s provided only for type hints. Instead, use
+<cite>cx.spawn_entity</cite></p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">rym</span><span class="w"> </span><span class="kn">import</span> <span class="n">cx</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@cx</span><span class="o">.</span><span class="n">component</span>
+<span class="gp">... </span><span class="k">class</span><span class="w"> </span><span class="nc">Foo</span><span class="p">:</span> <span class="o">...</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cx</span><span class="o">.</span><span class="n">spawn_entity</span><span class="p">((</span><span class="n">Foo</span><span class="p">(),</span> <span class="p">))</span>
+<span class="go">[Entity(component=(UUID(&#39;4e818f68-299c-4807-bd2b-5d36bd17cc1d&#39;),))]</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="module-rym.cx">
+<span id="api"></span><h2>API<a class="headerlink" href="#module-rym.cx" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="rym.cx.Component">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">rym.cx.</span></span><span class="sig-name descname"><span class="pre">Component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rym.cx.Component" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="rym.cx.Entity">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">rym.cx.</span></span><span class="sig-name descname"><span class="pre">Entity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#rym.cx.Component" title="rym.cx.core.component.Component"><span class="pre">Component</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rym.cx.Entity" title="Link to this definition"></a></dt>
+<dd><p>Define an entity object.</p>
+<p>NOTE: Entity is little more than a struct. Prefer a functional paradigm over OO.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="rym.cx.Entity.component">
+<span class="sig-name descname"><span class="pre">component</span></span><a class="headerlink" href="#rym.cx.Entity.component" title="Link to this definition"></a></dt>
+<dd><p>A tuple of component UIDs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[<a class="reference internal" href="#rym.cx.Component" title="rym.cx.core.component.Component">rym.cx.core.component.Component</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="rym.cx.Entity.__post_init__">
+<span class="sig-name descname"><span class="pre">__post_init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#rym.cx.Entity.__post_init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize and link.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="rym.cx.Entity.uid">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></em><a class="headerlink" href="#rym.cx.Entity.uid" title="Link to this definition"></a></dt>
+<dd><p>Return inventory UID.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="rym.cx.MagicMock">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">rym.cx.</span></span><span class="sig-name descname"><span class="pre">MagicMock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wraps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_spec_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_new_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_new_parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_spec_as_instance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_eat_self</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsafe</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rym.cx.MagicMock" title="Link to this definition"></a></dt>
+<dd><p>MagicMock is a subclass of Mock with default implementations
+of most of the magic methods. You can use MagicMock without having to
+configure the magic methods yourself.</p>
+<p>If you use the <cite>spec</cite> or <cite>spec_set</cite> arguments then <em>only</em> magic
+methods that exist in the spec will be created.</p>
+<p>Attributes and the return value of a <cite>MagicMock</cite> will also be <cite>MagicMocks</cite>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="rym.cx.MagicMock.mock_add_spec">
+<span class="sig-name descname"><span class="pre">mock_add_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rym.cx.MagicMock.mock_add_spec" title="Link to this definition"></a></dt>
+<dd><p>Add a spec to a mock. <cite>spec</cite> can either be an object or a
+list of strings. Only attributes on the <cite>spec</cite> can be fetched as
+attributes from the mock.</p>
+<p>If <cite>spec_set</cite> is True then only attributes on the spec can be set.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="rym.cx.MagicMock.reset_mock">
+<span class="sig-name descname"><span class="pre">reset_mock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rym.cx.MagicMock.reset_mock" title="Link to this definition"></a></dt>
+<dd><p>Restore the mock object to its initial state.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rym.cx.clear_registrar">
+<span class="sig-prename descclassname"><span class="pre">rym.cx.</span></span><span class="sig-name descname"><span class="pre">clear_registrar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#rym.cx.clear_registrar" title="Link to this definition"></a></dt>
+<dd><p>Clear catalog and inventory.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rym.cx.clear_registrar_async">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">rym.cx.</span></span><span class="sig-name descname"><span class="pre">clear_registrar_async</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#rym.cx.clear_registrar_async" title="Link to this definition"></a></dt>
+<dd><p>Clear catalog and inventory.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rym.cx.component">
+<span class="sig-prename descclassname"><span class="pre">rym.cx.</span></span><span class="sig-name descname"><span class="pre">component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">klass</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">T</span></span></span><a class="headerlink" href="#rym.cx.component" title="Link to this definition"></a></dt>
+<dd><p>Placeholders for functional tests.</p>
+<p>The functional tests fail outside of test cases b/c objects are not defined.
+Define a set of placeholders to allow tests to run (and fail) more accurately.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rym.cx.get_catalog">
+<span class="sig-prename descclassname"><span class="pre">rym.cx.</span></span><span class="sig-name descname"><span class="pre">get_catalog</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Registrar</span></span></span><a class="headerlink" href="#rym.cx.get_catalog" title="Link to this definition"></a></dt>
+<dd><p>Return a static catalog.</p>
+<p>This function will return the same registrar every time,
+i.e., the _global_ catalog. Multiple registrar instances may exist at any
+given time, but only one is the global catalog.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A static catalog instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rym.cx.get_inventory">
+<span class="sig-prename descclassname"><span class="pre">rym.cx.</span></span><span class="sig-name descname"><span class="pre">get_inventory</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Registrar</span></span></span><a class="headerlink" href="#rym.cx.get_inventory" title="Link to this definition"></a></dt>
+<dd><p>Return a static inventory.</p>
+<p>This function will return the same registrar every time,
+i.e., the _global_ inventory. Multiple registrar instances may exist at any
+given time, but only one is the global inventory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A static inventory instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rym.cx.get_inventory_uid">
+<span class="sig-prename descclassname"><span class="pre">rym.cx.</span></span><span class="sig-name descname"><span class="pre">get_inventory_uid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#rym.cx.get_inventory_uid" title="Link to this definition"></a></dt>
+<dd><p>Return inventory UID of an item.</p>
+<p>The attribute name is determined by the registrar, so provide an easy lookup.</p>
+<dl class="simple">
+<dt>NOTE: While this _could_ be on the registrar, it would require access to the</dt><dd><p>registrar instance. This function assumes we want the global inventory.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rym.cx.register_as_component">
+<span class="sig-prename descclassname"><span class="pre">rym.cx.</span></span><span class="sig-name descname"><span class="pre">register_as_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">klass</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">T</span></span></span><a class="headerlink" href="#rym.cx.register_as_component" title="Link to this definition"></a></dt>
+<dd><p>Decorate a component class.</p>
+<ul class="simple">
+<li><p>Integrates with ECS inventory, including attribuets and post-init updates.</p></li>
+<li><p>Converts to dataclass</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>klass</strong> – The class to decorate.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The modified class as a dataclass.</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>rym.cx.core.decorators.add_to_catalog</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rym.cx.retrieve">
+<span class="sig-prename descclassname"><span class="pre">rym.cx.</span></span><span class="sig-name descname"><span class="pre">retrieve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">component_groups</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="headerlink" href="#rym.cx.retrieve" title="Link to this definition"></a></dt>
+<dd><p>Lookup entities with commonents and pass into wrapped function.</p>
+<p>TODO: Sleep now, then figure out how to describe this more clearly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>func</strong> – The function being wrapped.</p></li>
+<li><p><strong>**kwargs</strong> – One or more component classes to match against.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The wrapped function.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rym.cx.spawn_entity">
+<span class="sig-prename descclassname"><span class="pre">rym.cx.</span></span><span class="sig-name descname"><span class="pre">spawn_entity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#rym.cx.Component" title="rym.cx.core.component.Component"><span class="pre">Component</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#rym.cx.Entity" title="rym.cx.core.entity.Entity"><span class="pre">Entity</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#rym.cx.spawn_entity" title="Link to this definition"></a></dt>
+<dd><p>Create an entity from one or more component sets and link them.</p>
+<p>Given tuples of components, create a new entity – only providing the
+component ids to the new entity. Then, add the entity ID to each component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>*args</strong> – Iterables of component instances.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of entity objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="rym-alias.html" class="btn btn-neutral float-left" title="rym-alias" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="rym-lpath.html" class="btn btn-neutral float-right" title="rym-lpath" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Stephen Bush.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
