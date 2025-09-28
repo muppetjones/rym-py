@@ -206,4 +206,73 @@ class TestGetWithMultiKey(ThisTestCase):
                 self.assertEqual(expected, found)
 
 
+class TestGetWithAsterisk(ThisTestCase):
+    """Test behavior."""
+
+    def test_raises_if_no_match(self) -> None:
+        example = {"foo": [{"bar": {"baz": 0}}]}
+        with self.assertRaisesRegex(ValueError, "failure to match"):
+            MOD.get(example, "foo.*.bar.meh")
+
+        with self.assertRaisesRegex(KeyError, "ugh"):
+            MOD.get(example, "ugh.*")
+
+    def test_raises_single_asterisk_with_empty_array(self) -> None:
+        with self.subTest("does not error if path doesn't go past empty array"):
+            example = {"foo": [], "baz": "3", "meh": {}}
+            MOD.get(example, "foo.*")
+
+        with self.subTest("errors if empty array"):
+            example = {"foo": [], "baz": "3", "meh": {}}
+            with self.assertRaisesRegex(ValueError, "failure to match"):
+                MOD.get(example, "foo.*.bar")
+
+    def test_behavior_single_asterisk_happy_path(self) -> None:
+        example = {
+            "foo": [{"bar": 0}, {"bar": 1}, {"bar": 2}],
+            "baz": "3",
+            "meh": {"a": {"hmm": 4}, "b": {"hmm": 5}, "c": {"hmm": 6}},
+        }
+        tests = [
+            # (expected, key)
+            (example["baz"], "baz.*"),
+            (example["foo"], "foo.*"),
+            (example["meh"], "meh.*"),
+            ([0, 1, 2], "foo.*.bar"),
+            ([4, 5, 6], "meh.*.hmm"),
+            ([{"hmm": 4}], "*.a"),
+            ([[0, 1, 2]], "*.*.bar"),
+            ([1], "*.1.bar"),
+        ]
+        for expected, key in tests:
+            with self.subTest(key):
+                found = MOD.get(example, key)
+                self.assertEqual(expected, found)
+
+    def test_behavior_single_asterisk_edge_cases(self) -> None:
+        with self.subTest("wild card with root list"):
+            example = [{"a": 0}, {"a": 1}, {"a": 2}]
+            expected = [0, 1, 2]
+            found = MOD.get(example, "*.a")
+            self.assertEqual(expected, found)
+
+        with self.subTest("array with namespace"):
+            example = [
+                {"a": list("xyz"), "b": 42},
+                SimpleNamespace(foo={"bar": "baz"}),
+            ]
+            expected = [["baz"]]  # NOTE: one set of iterables for each asterisk
+            found = MOD.get(example, "*.*.bar")
+            self.assertEqual(expected, found)
+
+    def test_behavior_with_nested_asterisk(self) -> None:
+        example = [
+            {"a": list("xyz"), "b": 42},
+            SimpleNamespace(foo={"bar": "baz"}),
+        ]
+        expected = [[["x", "y", "z"], 42], [{"bar": "baz"}]]
+        found = MOD.get(example, "*.*.*")
+        self.assertEqual(expected, found)
+
+
 # __END__
