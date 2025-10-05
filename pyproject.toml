@@ -6,7 +6,9 @@ requires-python = ">=3.8"
 [tool.pdm.dev-dependencies]
 dev = [
     "-e rym-alias @ file:///${PROJECT_ROOT}/rym-alias",
+    "-e rym-token @ file:///${PROJECT_ROOT}/rym-cx",
     "-e rym-lpath @ file:///${PROJECT_ROOT}/rym-lpath",
+    "-e rym-token @ file:///${PROJECT_ROOT}/rym-test",
     "-e rym-token @ file:///${PROJECT_ROOT}/rym-token",
 ]
 

@@ -21,7 +21,13 @@ def _add_namespaces_to_sys_path():
         root = Path(root, "rym-py")
     paths = [
         str(Path(root, x))
-        for x in ("rym-lpath", "rym-alias", "rym-token", "rym-cx")
+        for x in (
+            "rym-lpath",
+            "rym-alias",
+            "rym-token",
+            "rym-cx",
+            "rym-test",
+        )
     ]
     sys.path.extend(paths)
 

@@ -20,4 +20,4 @@ help:
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 api:
-	sphinx-apidoc -f -o docs/source ../rym-alias/ ../rym-lpath/ ../rym-token/ ../rym-cx/
+	sphinx-apidoc -f -o docs/source ../rym-alias/ ../rym-lpath/ ../rym-token/ ../rym-cx/ ../rym-test

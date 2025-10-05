@@ -15,6 +15,7 @@ multiple different packages or package versions.
    rym-alias
    rym-cx
    rym-lpath
+   rym-test
    rym-token
 
 

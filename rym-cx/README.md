@@ -1,7 +1,7 @@
 # rym-cx
 
-[![PyPI - Version](https://img.shields.io/pypi/v/rym-token.svg)](https://pypi.org/project/rym-cx)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/rym-token.svg)](https://pypi.org/project/rym-cx)
+[![PyPI - Version](https://img.shields.io/pypi/v/rym-cx.svg)](https://pypi.org/project/rym-cx)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/rym-cx.svg)](https://pypi.org/project/rym-cx)
 [![License: MIT](https://img.shields.io/badge/license-MIT-C06524)](https://github.com/muppetjones/rym-py/blob/main/LICENSE.txt)
 
 > [!IMPORTANT]  
