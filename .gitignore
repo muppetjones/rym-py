@@ -4,6 +4,7 @@
 sandbox/
 Untitled*ipynb
 _version.py
+.pdm-python
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

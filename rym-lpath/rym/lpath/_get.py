@@ -50,7 +50,7 @@ class InvalidKey(ValueError):
     """Raise if given an unsupported key type."""
 
 
-def get(
+def get_value(
     value: Any,
     key: Union[str, Iterable[str]],
     default: Optional[Any] = __DEFAULT,

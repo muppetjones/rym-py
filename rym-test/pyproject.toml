@@ -1,28 +1,29 @@
 [project]
-name = "rym-lpath"
+name = "rym-test"
 dynamic = ["version"]
-description = "A python library for accessing mappings and objects."
+description = "A sandbox for indexing."
 authors = [
     {name = "Stephen Bush", email = "2041619+muppetjones@users.noreply.github.com"},
 ]
 dependencies = []
 requires-python = ">=3.8"
 readme = "README.md"
-license = "MIT"
+license = {text = "MIT"}
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
 
+
 [dependency-groups]
-dev = [
-    "pre-commit>=3.0.4",
-    "ruff>=0.0.287",
-]
 ipy = [
     "ipykernel>=6.16.2",
     "jupyterlab>=3.6.1",
+]
+dev = [
+    "pre-commit>=3.0.4",
+    "ruff>=0.0.287",
 ]
 test = [
     "pytest>=7.2.1",
@@ -30,56 +31,55 @@ test = [
     "coverage>=7.2.0",
 ]
 
-
 [project.urls]
-"Homepage" = "https://github.com/muppetjones/rym-py/tree/main/rym-lpath"
+"Homepage" = "https://github.com/muppetjones/rym-py/tree/main/rym-test"
 "Bug Tracker" = "https://github.com/muppetjones/rym-py/issues"
-"Documentation" = "https://muppetjones.github.io/rym-py/rym-lpath"
+"Documentation" = "https://muppetjones.github.io/rym-py/rym-test"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch]
 [tool.hatch.build]
 exclude = ["tests", "notebooks"]
 include = ["rym"]
 
 [tool.hatch.version]
-path = "rym/lpath/__about__.py"
-
+path = "rym/test/__about__.py"
 
 [tool.pdm]
 [tool.pdm.scripts]
 init-hooks = "pre-commit install"
 rm-hooks = "pre-commit uninstall"
 lint = "ruff check ."
-clean = "find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete -o -type d -name .pytest_cache -delete"
-test = "pytest"
-
-
-[tool.pytest.ini_options]
-minversion = "7.0"
-addopts = [
-    "-ra -vvv",
-    "--cov=rym",
-    "--import-mode=importlib",
-]
-pythonpath = ["."]
-testpaths = ["tests"]
+clean = "find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete"
+clean-dry = "find . -type f -name '*.py[co]' -o -type d -name __pycache__ -o -type d -name .pytest_cache"
+test = "pytest -vv"
+rtest = {call = 'rym.test.__main__:run'}
 
 [tool.coverage.run]
 omit = [
     "**/__init__.py",
-    "**/_version.py",
     "**/__about__.py",
 ]
 
 [tool.coverage.report]
 show_missing = true
 
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = '''
+--import-mode=importlib -ra
+-vvv
+--cov=rym
+'''
+pythonpath = ["."]
+testpaths = ["tests"]
+
 [tool.black]
-line-length = 83
-target-version = ["py38", "py39", "py310"]
+line-length = 88
+target-version = ["py39", "py310", "py311"]
 exclude = '''
 /(
     \.eggs
@@ -98,7 +98,7 @@ exclude = '''
 [tool.isort]
 profile = "black"
 atomic = true
-line_length = 83
+line_length = 88
 float_to_top = true
 skip_glob = "**/__init__.py"
 
