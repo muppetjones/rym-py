@@ -48,6 +48,8 @@ jobs:
     needs: change-matrix
     if: ${{ needs.change-matrix.outputs.python == 'true' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
@@ -57,7 +59,7 @@ jobs:
         run: isort ${{ needs.change-matrix.outputs.python_files }}
       - name: black
         run: black ${{ needs.change-matrix.outputs.python_files }}
-      - uses: stefanzweifel/git-auto-commit-action@v6
+      - uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "format-py: black and isort"
   # NOTE: Should work now -- updated from wosking version -- test later
