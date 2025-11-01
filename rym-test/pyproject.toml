@@ -15,6 +15,22 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
+
+[dependency-groups]
+ipy = [
+    "ipykernel>=6.16.2",
+    "jupyterlab>=3.6.1",
+]
+dev = [
+    "pre-commit>=3.0.4",
+    "ruff>=0.0.287",
+]
+test = [
+    "pytest>=7.2.1",
+    "pytest-cov>=4.0.0",
+    "coverage>=7.2.0",
+]
+
 [project.urls]
 "Homepage" = "https://github.com/muppetjones/rym-py/tree/main/rym-test"
 "Bug Tracker" = "https://github.com/muppetjones/rym-py/issues"
@@ -41,22 +57,6 @@ clean = "find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -d
 clean-dry = "find . -type f -name '*.py[co]' -o -type d -name __pycache__ -o -type d -name .pytest_cache"
 test = "pytest -vv"
 rtest = {call = 'rym.test.__main__:run'}
-
-[tool.pdm.dev-dependencies]
-ipy = [
-    "ipykernel>=6.16.2",
-    "jupyterlab>=3.6.1",
-]
-dev = [
-    "pre-commit>=3.0.4",
-    "ruff>=0.0.287",
-]
-test = [
-    "pytest>=7.2.1",
-    "pytest-cov>=4.0.0",
-    "coverage>=7.2.0",
-    "tox>=4.4.6",
-]
 
 [tool.coverage.run]
 omit = [

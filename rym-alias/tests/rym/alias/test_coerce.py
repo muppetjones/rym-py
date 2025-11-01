@@ -64,10 +64,7 @@ class TestBoolean(TestCase):
     def test_returns_value_from_implicit_type(self):
         tests = [
             # (expected, given)
-            *[
-                ((bool, True), {"value": x})
-                for x in (True, "true", "TRUE", "True")
-            ],
+            *[((bool, True), {"value": x}) for x in (True, "true", "TRUE", "True")],
             *[
                 ((bool, False), {"value": x})
                 for x in (False, "false", "FALSE", "False")
@@ -276,9 +273,9 @@ class TestString(ThisTestCase):
     """Test feature."""
 
     def test_returns_value_from_explicit_type(self):
-        class Foo:
-            ...
+        class Foo: ...
 
+        instance = Foo()
         tests = [
             # (expected, given)
             ((str, "42.4"), {"value": "42.4", "type_": str}),
@@ -288,13 +285,13 @@ class TestString(ThisTestCase):
                 {"value": ["a", "b", None], "type_": "str"},
             ),
             ((str, str(Foo)), {"value": Foo, "type_": "str"}),  # "<class Foo>"
-            ((str, str(Foo())), {"value": Foo(), "type_": "str"}),  # "Foo()"
+            ((str, str(instance)), {"value": instance, "type_": "str"}),  # "Foo()"
         ]
         for expected, kwargs in tests:
             with self.subTest(kwargs):
                 value = MOD.coerce(**kwargs)
                 found = (type(value), value)
-                self.assertEqual(expected, found)
+                self.assertEqual(expected, found, f"\n{expected}\n{found}")
 
 
 # __END__
