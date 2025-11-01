@@ -25,3 +25,26 @@ multiple different packages or package versions.
 - `rym-token`
   - [![PyPI - Version](https://img.shields.io/pypi/v/rym-token.svg)](https://pypi.org/project/rym-token)
   - [Documentation](https://muppetjones.github.io/rym-py/rym-token)
+
+## Known Issuse
+
+### Running `tox` within the `rym-*` subdirectory
+
+In order to keep run tox from a subdirectory, we need to symlink the tox.ini.
+Otherwise, tox will find the config file at the root and try to use the pyproject.toml
+from root instead of from the subdir.
+
+```bash
+cd rym-lpath
+ln -s ../tox.ini tox.ini
+```
+
+This allows each subpackage can run tox locally and find its own configuration
+while we can maintain a single source of truth for the tox configuration.
+I.e., changes to tox.ini automatically apply to all subpackages.
+
+However, if the tox configuration ever needs to be different between subpackages
+(different test environments, different dependencies, etc.), we'll to either:
+
+- Break out into separate tox.ini files for those packages, or
+- Use tox's inheritance features to have package-specific overrides
