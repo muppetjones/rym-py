@@ -19,7 +19,7 @@ You can also add new keys with mappings:
 >>> example[0]['c']
 'u l8r'
 
-**Recommended: Just use `lpath.get`**
+**Recommended: Just use `lpath.get` for nested objects.**
 
 >>> lpath.get(example, '0.a').append('aa')
 >>> lpath.get(example, '0.a.3')
@@ -28,21 +28,60 @@ You can also add new keys with mappings:
 >>> lpath.get(example, '1.baz')
 42
 
+**Backwards Compatability**
 
+The `lpath` module is expected to be used directly rather than importing individual
+functions, e.g., `lpath.set`. This convention avoids any name collisions while
+being explicit. To minimize risk if the function is imported directly, the function
+name was changed to `set_value` in v1.0.0. The alias `lpath.set` is maintained
+and will not be removed.
 """
 
 import logging
+import warnings
 from collections import abc
 from functools import singledispatch
 from typing import Any, Iterable, Mapping, Optional, Union
 
 from ._delim import get_delimiter
-from ._get import get
+from ._get import get_value
 
 LOGGER = logging.getLogger(__name__)
 
+# Backwards compatibility
+# ======================================================================
+
 
 def set(
+    instance: Union[object, Iterable, Mapping],
+    key: str,
+    value: Any,
+    *,
+    delim: Optional[str] = None,
+) -> None:
+    """DEPRECATED: Use set_value.
+
+    NOTE: This function name causes a collision with the builtin "set".
+        Because lpath is intended to be used directly as a module, e.g., lpath.set,
+        this collision should not be relevant, but it's safer to do rename it this
+        way.
+
+    See also:
+        set_value.
+    """
+    msg = (
+        "rympy.lpath._set.set is deprecated and is not indended to be used directly",
+        "Please use via 'lpath.set' or use 'set_value' directly.",
+    )
+    warnings.warn(" ".join(msg))
+    return set_value(instance, key, value, delim=delim)
+
+
+# Set value
+# ======================================================================
+
+
+def set_value(
     instance: Union[object, Iterable, Mapping],
     key: str,
     value: Any,
@@ -72,7 +111,7 @@ def set(
 
     if parts:
         parent = delim.join(parts)
-        target = get(instance, parent, delim=delim)
+        target = get_value(instance, parent, delim=delim)
     else:
         target = instance
 

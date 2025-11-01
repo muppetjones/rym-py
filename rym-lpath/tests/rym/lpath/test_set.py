@@ -5,7 +5,7 @@ import copy
 import logging
 from types import SimpleNamespace
 from typing import Mapping
-from unittest import TestCase
+from unittest import TestCase, mock
 
 import rym.lpath as MOD
 
@@ -14,6 +14,44 @@ LOGGER = logging.getLogger(__name__)
 
 class ThisTestCase(TestCase):
     """Base test case for the module."""
+
+
+class TestSetCollision(ThisTestCase):
+    """Test function."""
+
+    def test_direct_import_backwards_compatibility(self) -> None:
+        # NOTE: Deprecated functionality
+        from rym.lpath import _set  # shouldn't pollute namespace
+
+        subject = {"foo": [0, {"bar": 3}]}
+
+        with mock.patch.object(_set.warnings, "warn") as mwarn:
+            _set.set(subject, "foo.1.baz", 4)
+            assert 1 == mwarn.call_count  # ensure ui
+
+        expected = {"bar": 3, "baz": 4}
+        found = subject["foo"][1]
+        self.assertEqual(expected, found)
+
+    def test_namespace_is_not_polluted(self) -> None:
+        expected = {1, 2, 2}
+        with self.subTest("lpath import"):
+            found = set([1, 2])
+            self.assertEqual(expected, found)
+
+        with self.subTest("_set import"):
+            # shouldn't pollute namespace
+            from rym.lpath import _set  # noqa
+
+            found = set([1, 2])
+            self.assertEqual(expected, found)
+
+    def test_control_for_namespace_pollution(self) -> None:
+        from rym.lpath._set import set
+
+        with self.subTest("control"):
+            with self.assertRaises(TypeError):
+                _ = set([1, 2])
 
 
 class TestSet(ThisTestCase):

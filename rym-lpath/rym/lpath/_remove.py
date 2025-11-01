@@ -24,12 +24,12 @@ from functools import singledispatch
 from typing import Any, Iterable, Mapping, Optional, Tuple, Union
 
 from ._delim import get_delimiter
-from ._get import get
+from ._get import get_value
 
 LOGGER = logging.getLogger(__name__)
 
 
-def pop(
+def pop_value(
     instance: Union[object, Iterable, Mapping],
     key: str,
     *,
@@ -54,7 +54,7 @@ def pop(
 
     if parts:
         parent = delim.join(parts)
-        target = get(instance, parent, delim=delim)
+        target = get_value(instance, parent, delim=delim)
     else:
         target = instance
 

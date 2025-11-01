@@ -40,7 +40,7 @@ lint = "ruff check ."
 clean = "find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete"
 clean-dry = "find . -type f -name '*.py[co]' -o -type d -name __pycache__ -o -type d -name .pytest_cache"
 test = "pytest -vv"
-rtest = {call = "rym.test.__main__:run"}
+rtest = {call = 'rym.test.__main__:run'}
 
 [tool.pdm.dev-dependencies]
 ipy = [
