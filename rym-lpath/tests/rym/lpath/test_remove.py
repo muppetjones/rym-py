@@ -16,6 +16,23 @@ class ThisTestCase(TestCase):
     """Base test case for the module."""
 
 
+class TestAliasRemove(ThisTestCase):
+    """Test alias."""
+
+    def test_alias_exists(self) -> None:
+        with self.subTest("alias exists"):
+            found = MOD.remove
+            expected = MOD.pop
+            self.assertEqual(expected, found)
+
+        with self.subTest("alias functionality control"):
+            given = {"foo": [0, 1, 2]}
+            MOD.remove(given, "foo.1")
+            expected = {"foo": [0, 2]}
+            found = given  # in place modification!
+            self.assertEqual(expected, found)
+
+
 class TestPop(ThisTestCase):
     """Test function."""
 
