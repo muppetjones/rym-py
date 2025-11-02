@@ -96,7 +96,7 @@ class TestGet(ThisTestCase):
                 with self.assertRaisesRegex(InvalidKeyError, exc_type.__name__):
                     MOD.get(example, key)
 
-    @skipIf(can_use_exception_groups(), "Requires py3.11+")
+    @skipIf(not can_use_exception_groups(), "Requires py3.11+")
     def test_raises_exceptiongroup_if_key_not_found(self) -> None:
         enable_exception_groups()
         example = self.get_example()
