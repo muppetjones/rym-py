@@ -5,7 +5,9 @@ description = "A python library for accessing mappings and objects."
 authors = [
     {name = "Stephen Bush", email = "2041619+muppetjones@users.noreply.github.com"},
 ]
-dependencies = []
+dependencies = [
+    "exceptiongroup; python_version < '3.11'"
+]
 requires-python = ">=3.8"
 readme = "README.md"
 license = "MIT"
@@ -78,7 +80,7 @@ omit = [
 show_missing = true
 
 [tool.black]
-line-length = 83
+line-length = 88
 target-version = ["py38", "py39", "py310"]
 exclude = '''
 /(
@@ -98,7 +100,7 @@ exclude = '''
 [tool.isort]
 profile = "black"
 atomic = true
-line_length = 83
+line_length = 88
 float_to_top = true
 skip_glob = "**/__init__.py"
 

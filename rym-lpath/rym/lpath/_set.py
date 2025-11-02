@@ -45,6 +45,7 @@ from typing import Any, Iterable, Mapping, Optional, Union
 
 from ._delim import get_delimiter
 from ._get import get_value
+from .errors import unified_item_access_error_handler
 
 LOGGER = logging.getLogger(__name__)
 
@@ -81,6 +82,7 @@ def set(
 # ======================================================================
 
 
+@unified_item_access_error_handler
 def set_value(
     instance: Union[object, Iterable, Mapping],
     key: str,
@@ -115,7 +117,7 @@ def set_value(
     else:
         target = instance
 
-    _set_to(target, name, value)
+    return _set_to(target, name, value)
 
 
 @singledispatch

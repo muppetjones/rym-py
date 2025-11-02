@@ -8,6 +8,7 @@ from typing import Mapping
 from unittest import TestCase
 
 import rym.lpath as MOD
+from rym.lpath.errors import InvalidKeyError, KeyFormatError
 
 LOGGER = logging.getLogger(__name__)
 
@@ -66,21 +67,31 @@ class TestPop(ThisTestCase):
                 with self.assertRaisesRegex(TypeError, "not supported"):
                     MOD.pop(example, key)
 
-    def test_raises_if_key_parent_does_not_exist_or_invalid(self):
+    def test_raises_if_key_parent_does_not_exist(self):
         example = self.get_example()
         tests = [
             # (exc_type, value, path)
             (IndexError, None, "list.42"),
             (IndexError, None, "list.1.4"),
             (AttributeError, None, "list.3.hehe"),
-            (ValueError, None, "mapping.e.missing.nested"),
             (KeyError, None, "mapping.f.missing.nested"),
             (AttributeError, None, "mapping.d.foo"),
             (AttributeError, None, "namespace.f"),
         ]
         for exc_type, value, path in tests:
             with self.subTest(value=value, path=path):
-                with self.assertRaises(exc_type):
+                with self.assertRaisesRegex(InvalidKeyError, exc_type.__name__):
+                    MOD.pop(example, path)
+
+    def test_raises_if_key_parent_invalid(self):
+        example = self.get_example()
+        tests = [
+            # (exc_type, value, path)
+            (ValueError, None, "mapping.e.missing.nested"),
+        ]
+        for exc_type, value, path in tests:
+            with self.subTest(value=value, path=path):
+                with self.assertRaisesRegex(KeyFormatError, exc_type.__name__):
                     MOD.pop(example, path)
 
     def test_returns_value_for_given_path(self):
@@ -117,7 +128,7 @@ class TestPopIntegratedExamples(ThisTestCase):
         self.assertEqual([[2, 3], []], example)
         self.assertEqual([1, 9, [4, 5, 6], 7, 8], removed)
 
-        with self.assertRaises(IndexError):
+        with self.assertRaisesRegex(InvalidKeyError, "IndexError"):
             MOD.pop(example, "1.0")
 
     def test_removes_from_mapping(self):
@@ -130,7 +141,7 @@ class TestPopIntegratedExamples(ThisTestCase):
         self.assertEqual({"a": [1, 2], "b": {"x": 4}}, example)
         self.assertEqual([3, 5, {"z": 42}], removed)
 
-        with self.assertRaises(KeyError):
+        with self.assertRaisesRegex(InvalidKeyError, "KeyError"):
             MOD.pop(example, "b.y")
 
     def test_removes_from_namespace(self):
@@ -151,7 +162,7 @@ class TestPopIntegratedExamples(ThisTestCase):
         self.assertEqual(expected, example)
         self.assertEqual([3, 5, {"z": 42}], removed)
 
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(InvalidKeyError):
             MOD.pop(example, "b.y")
 
 
