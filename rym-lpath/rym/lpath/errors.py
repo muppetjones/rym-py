@@ -43,22 +43,27 @@ _DO_USE_EXCEPTION_GROUP = False  # DISABLED by default
 
 
 def can_use_exception_groups() -> bool:
+    """Return True if ExceptionGroup is available, i.e., py3.11+."""
     return _CAN_USE_EXCEPTION_GROUP
 
 
 def do_use_exception_groups() -> bool:
+    """Return True if ExceptionGroup is enabled; requires py3.11+."""
     return can_use_exception_groups() and _DO_USE_EXCEPTION_GROUP
 
 
 def disable_exception_groups() -> None:
+    """Disable ExceptionGroup usage (default)."""
     set_use_exception_groups(False)
 
 
 def enable_exception_groups() -> None:
+    """Enable ExceptionGroup usage; requires py3.11+"""
     set_use_exception_groups(True)
 
 
 def set_use_exception_groups(value: bool) -> None:
+    """Enable or disable ExceptionGroup usage; requires py3.11+."""
     global _DO_USE_EXCEPTION_GROUP
     if not value:
         _DO_USE_EXCEPTION_GROUP = False
