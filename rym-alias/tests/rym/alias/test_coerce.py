@@ -64,10 +64,7 @@ class TestBoolean(TestCase):
     def test_returns_value_from_implicit_type(self):
         tests = [
             # (expected, given)
-            *[
-                ((bool, True), {"value": x})
-                for x in (True, "true", "TRUE", "True")
-            ],
+            *[((bool, True), {"value": x}) for x in (True, "true", "TRUE", "True")],
             *[
                 ((bool, False), {"value": x})
                 for x in (False, "false", "FALSE", "False")
