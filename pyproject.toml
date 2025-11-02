@@ -21,7 +21,7 @@ clean = "find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -d
 clean-dry = "find . -type f -name '*.py[co]' -o -type d -name __pycache__ -o -type d -name .pytest_cache"
 
 [tool.black]
-line-length = 83
+line-length = 88
 target-version = ["py38", "py39", "py310", "py311"]
 exclude = '''
 /(
@@ -41,7 +41,7 @@ exclude = '''
 [tool.isort]
 profile = "black"
 atomic = true
-line_length = 83
+line_length = 88
 float_to_top = true
 skip_glob = "**/__init__.py"
 

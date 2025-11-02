@@ -8,6 +8,7 @@ from typing import Mapping
 from unittest import TestCase, mock
 
 import rym.lpath as MOD
+from rym.lpath.errors import InvalidKeyError, KeyFormatError
 
 LOGGER = logging.getLogger(__name__)
 
@@ -91,14 +92,24 @@ class TestSet(ThisTestCase):
             (IndexError, None, "list.42"),
             (IndexError, None, "list.1.4"),
             (AttributeError, None, "list.3.hehe"),
-            (ValueError, None, "mapping.e.missing.nested"),
             (KeyError, None, "mapping.f.missing.nested"),
             (AttributeError, None, "mapping.d.foo"),
             (AttributeError, None, "namespace.f"),
         ]
         for exc_type, value, path in tests:
             with self.subTest(value=value, path=path):
-                with self.assertRaises(exc_type):
+                with self.assertRaisesRegex(InvalidKeyError, exc_type.__name__):
+                    MOD.set(example, path, value)
+
+    def test_raises_if_key_parent_invalid(self):
+        example = self.get_example()
+        tests = [
+            # (exc_type, value, path)
+            (ValueError, None, "mapping.e.missing.nested"),
+        ]
+        for exc_type, value, path in tests:
+            with self.subTest(value=value, path=path):
+                with self.assertRaisesRegex(KeyFormatError, exc_type.__name__):
                     MOD.set(example, path, value)
 
     def test_sets_value_for_given_path(self):
