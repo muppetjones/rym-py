@@ -14,7 +14,7 @@ Remove any nested index, item, or attribute
 >>> lpath.get(example, '1.foo.bar')
 Traceback (most recent call last):
     ...
-KeyError: '1.foo.bar'
+rym.lpath.errors.InvalidKeyError: "1.foo.bar; 'bar' (KeyError)"
 
 """
 
@@ -25,10 +25,12 @@ from typing import Any, Iterable, Mapping, Optional, Tuple, Union
 
 from ._delim import get_delimiter
 from ._get import get_value
+from .errors import unified_item_access_error_handler
 
 LOGGER = logging.getLogger(__name__)
 
 
+@unified_item_access_error_handler
 def pop_value(
     instance: Union[object, Iterable, Mapping],
     key: str,

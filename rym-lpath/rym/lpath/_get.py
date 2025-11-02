@@ -14,8 +14,7 @@ Access any nested index, item, or attribute
 
 Use a default value if the item doesn't exist
 
-
->>> lpath.get(example, 'hello.world', default='oops')
+>>> lpath.get(example, '0.hello.world', default='oops')
 'oops'
 
 Or, specify multiple options and get the first match
@@ -41,15 +40,17 @@ from traceback import TracebackException
 from typing import Any, Deque, Iterable, Mapping, Optional, Union
 
 from ._delim import get_delimiter
+from .errors import InvalidWildcardError, unified_item_access_error_handler
 
 LOGGER = logging.getLogger(__name__)
 __DEFAULT = "any random string that is unlikely to be provided"
 
 
-class InvalidKey(ValueError):
-    """Raise if given an unsupported key type."""
+# Functions
+# ======================================================================
 
 
+@unified_item_access_error_handler
 def get_value(
     value: Any,
     key: Union[str, Iterable[str]],
@@ -73,31 +74,30 @@ def get_value(
     Returns:
         The property found.
     Raises:
-        AttributeError, IndexError, or KeyError if the requested key could not be found.
-        ValueError if an invalid key given.
+        NOTE: Error handling is provided by the decorator.
+        InvalidKeyError(KeyError) if the requested key could not be found.
+        KeyFormatError(ValueError) if an invalid key given.
+        ExceptionGroup if enabled.
     """
     delim = delim or get_delimiter()
     try:
         return _get(key, value, delim)
-    except InvalidKey:
-        raise
-    except (AttributeError, KeyError, IndexError, ValueError):
-        if __DEFAULT != default:
+    except (AttributeError, KeyError, IndexError, InvalidWildcardError):
+        if __DEFAULT != default:  # safely handles None
             return default
+
         raise
 
 
 # _get
 # ======================================================================
-# This set of dispatchers han
+# This set of dispatchers determines whether we have a single key or multiple
 
 
 @singledispatch
 def _get(key: Any, value: Any, delim: str) -> Any:
     """Dispatch based a single key or multiple."""
-    raise InvalidKey(
-        f"invalid key: {key}, ({type(key)}); expected str or list of str"
-    )
+    raise ValueError(f"invalid key: {key}, ({type(key)}); expected str or list of str")
 
 
 @_get.register(str)
@@ -105,13 +105,8 @@ def _(key: str, value: str, delim: str) -> Any:
     parts = key.split(delim)
     try:
         return _get_from(value, deque(parts))
-    except (AttributeError, IndexError, KeyError) as err:
-        tb = TracebackException.from_exception(err)
-        missing = str(err).strip("'\"")
-        idx = parts.index(missing) + 1
-        raise tb.exc_type(".".join(parts[:idx])) from err
-    except ValueError as err:
-        raise ValueError(f"{err} (given={key})") from err
+    except (AttributeError, IndexError, KeyError, ValueError):
+        raise  # Let the unified decorator handle formatting
 
 
 @_get.register(abc.Iterable)
@@ -127,6 +122,7 @@ def _(key: Iterable[str], value: str, delim: str) -> Any:
 
 # _get_from
 # ======================================================================
+# These dispatchers handle the recursive "get" lookup
 
 
 def _get_from(value: Any, parts: Deque[str]) -> Any:
@@ -171,6 +167,8 @@ def _(value: Iterable, parts: Deque[str], *, key: str) -> Any:
         curr = value[int(key)]
     except IndexError:
         raise IndexError(key) from None
+    except ValueError:
+        raise
     return _get_from(curr, parts)
 
 
@@ -187,7 +185,7 @@ def _get_from_single_asterisk(value: Any, parts: Deque[str]) -> Any:
         # Edge case. We have parts, but no ability to go deeper.
         # NOTE: Stick to ValueError -- we don't know what was expected.
         partial_key = ".".join(parts)
-        raise ValueError(f"failure to match after asterisk: *.{partial_key}")
+        raise InvalidWildcardError(f"failure to match after asterisk: *.{partial_key}")
     return list(_yield_from_single_asterisk(value, parts))
 
 
@@ -217,7 +215,7 @@ def _yield_from_single_asterisk(
     if errors and not matched_any:
         # NOTE: Stick to ValueError -- we don't know what was expected.
         partial_key = ".".join(parts)
-        raise ValueError(f"failure to match after asterisk: *.{partial_key}")
+        raise InvalidWildcardError(f"failure to match after asterisk: *.{partial_key}")
 
 
 # _get_iter
