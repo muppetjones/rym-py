@@ -6,6 +6,12 @@ on:
       package:
         required: true
         type: string
+      python-versions:
+        # JSON array string, e.g. '["3.11","3.12","3.13"]'. Computed per package by
+        # the calling workflow; default covers workflow_dispatch / direct calls.
+        required: false
+        type: string
+        default: '["3.9","3.10","3.11","3.12","3.13"]'
   workflow_dispatch:
     inputs:
       package:
@@ -27,7 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ${{ fromJSON(inputs.python-versions) }}
         os: ["ubuntu-latest"]
     defaults:
       run:

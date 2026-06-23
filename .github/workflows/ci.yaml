@@ -11,6 +11,7 @@ jobs:
     # Set job outputs to values from filter step
     outputs:
       packages: ${{ steps.filter.outputs.changes }}
+      versions: ${{ steps.versions.outputs.map }}
     permissions:
       pull-requests: read
     steps:
@@ -41,6 +42,36 @@ jobs:
               - 'rym-token/**'
               - ".github/workflows/ci*.yaml"
               - ".github/workflows/python*.yaml"
+      - id: versions
+        # Build a {package: [versions]} map. Each package's floor comes from its
+        # requires-python; the ceiling is shared. Off release branches, raise the
+        # floor to the oldest non-EOL version so we don't spend CI on dead pythons.
+        env:
+          MAX_VERSION: "3.13"
+          MIN_VERSION_DEVELOP: "3.10"     # oldest non-EOL as of 2026-06; bump yearly
+          PACKAGES: ${{ steps.filter.outputs.changes }}
+          FULL_MATRIX: ${{ startsWith(github.head_ref, 'release/')
+            || startsWith(github.head_ref, 'hotfix/')
+            || startsWith(github.ref_name, 'release/')
+            || startsWith(github.ref_name, 'hotfix/')
+            || github.ref_name == 'main' }}
+        run: |
+          map=$(python3 - <<'PY'
+          import json, os, pathlib, re, tomllib
+          _, max_minor = (int(x) for x in os.environ["MAX_VERSION"].split("."))
+          _, dev_minor = (int(x) for x in os.environ["MIN_VERSION_DEVELOP"].split("."))
+          full = os.environ["FULL_MATRIX"] == "true"
+          out = {}
+          for pkg in json.loads(os.environ["PACKAGES"]):
+              data = tomllib.loads(pathlib.Path(pkg, "pyproject.toml").read_text())
+              spec = data["project"]["requires-python"]          # e.g. ">=3.8"
+              _, lo_minor = (int(g) for g in re.search(r"(\d+)\.(\d+)", spec).groups())
+              lo = lo_minor if full else max(lo_minor, dev_minor)
+              out[pkg] = [f"3.{m}" for m in range(lo, max_minor + 1)]
+          print(json.dumps(out))
+          PY
+          )
+          echo "map=$map" >> "$GITHUB_OUTPUT"
   python-package:
     name: "${{ matrix.package }}"
     needs: change-matrix
@@ -53,4 +84,5 @@ jobs:
     uses: ./.github/workflows/python-build.yaml
     with:
       package: ${{ matrix.package }}
+      python-versions: ${{ toJSON(fromJSON(needs.change-matrix.outputs.versions)[matrix.package]) }}
 
