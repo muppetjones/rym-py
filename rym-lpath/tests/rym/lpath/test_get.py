@@ -4,7 +4,7 @@
 import itertools
 import logging
 from types import SimpleNamespace
-from typing import Any, Mapping
+from typing import Any, Mapping, NamedTuple
 from unittest import TestCase, skipIf
 
 import rym.lpath as MOD
@@ -153,6 +153,24 @@ class TestGet(ThisTestCase):
         for expected, key in tests:
             with self.subTest(key=key):
                 found = MOD.get(example, key)
+                self.assertEqual(expected, found)
+
+    def test_named_tuple(self) -> None:
+        class FooTuple(NamedTuple):
+            x: int
+            y: str
+
+        subject = {"foo": [FooTuple(867, "5")], "bar": FooTuple(3, "09")}
+        tests = [
+            # (expected, given)
+            (867, "foo.0.x"),
+            (867, "foo.0.0"),
+            ("09", "bar.y"),
+            ("09", "bar.1"),
+        ]
+        for expected, given in tests:
+            with self.subTest(given=given):
+                found = MOD.get(subject, given)
                 self.assertEqual(expected, found)
 
 

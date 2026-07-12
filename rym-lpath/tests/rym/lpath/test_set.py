@@ -4,7 +4,7 @@
 import copy
 import logging
 from types import SimpleNamespace
-from typing import Mapping
+from typing import Iterable, Mapping, NamedTuple
 from unittest import TestCase, mock
 
 import rym.lpath as MOD
@@ -150,6 +150,28 @@ class TestSet(ThisTestCase):
                 found = retrieve(instance)
                 expected = value
                 self.assertEqual(expected, found)
+
+    def test_named_tuple(self) -> None:
+        # NOTE: Can't set named tuple, so _should_ raise, but shows lookup capability
+        class FooTuple(NamedTuple):
+            x: int
+            y: Iterable[str]
+
+        subject = {"foo": [FooTuple(867, ["5"])], "bar": FooTuple(3, ["09"])}
+        with self.subTest("raises for set attempt; attr"):
+            with self.assertRaisesRegex(KeyError, "can't set"):
+                # InvalidKeyError
+                MOD.set(subject, "foo.0.x", 6)
+
+        with self.subTest("raises for set attempt; idx"):
+            with self.assertRaisesRegex(TypeError, "assignment"):
+                MOD.set(subject, "foo.0.1", 6)
+
+        with self.subTest("sets mutable attribute"):
+            MOD.set(subject, "foo.0.y.0", "hi")
+            expected = "hi"
+            found = subject["foo"][0].y[0]
+            self.assertEqual(expected, found)
 
 
 class TestSetWithDelim(ThisTestCase):

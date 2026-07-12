@@ -167,8 +167,12 @@ def _(value: Iterable, parts: Deque[str], *, key: str) -> Any:
         curr = value[int(key)]
     except IndexError:
         raise IndexError(key) from None
-    except ValueError:
-        raise
+    except ValueError as err:
+        # key isn't an int -- maybe named tuple?
+        try:
+            curr = getattr(value, key)
+        except AttributeError:
+            raise err  # raise the value error -- it's the most relevant
     return _get_from(curr, parts)
 
 
