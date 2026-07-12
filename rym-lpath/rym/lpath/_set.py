@@ -132,6 +132,7 @@ def _set_to(instance: Any, key: str, value: Any) -> None:
         None.
     Raises:
         AttributeError, KeyError, or IndexError if key does not exist.
+        May raise TypeError or AttributeError if does not support assignment.
     """
     _ = getattr(instance, key)  # raise if key not available
     setattr(instance, key, value)
@@ -145,8 +146,11 @@ def _(instance: str, key: str, value: Any) -> None:
 
 @_set_to.register(abc.Iterable)
 def _(instance: Iterable, key: str, value: Any) -> None:
-    index = int(key)
-    instance[index] = value
+    if hasattr(instance, key):
+        setattr(instance, key, value)  # support namedtuple-like (but should error)
+    else:
+        index = int(key)
+        instance[index] = value
 
 
 @_set_to.register(abc.Mapping)
